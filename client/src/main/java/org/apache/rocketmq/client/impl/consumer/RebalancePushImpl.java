@@ -117,25 +117,32 @@ public class RebalancePushImpl extends RebalanceImpl {
         this.defaultMQPushConsumerImpl.getOffsetStore().removeOffset(mq);
     }
 
+    /**
+     * 再push模式下,计算拉取位置(偏移量)
+     */
     @Override
     public long computePullFromWhere(MessageQueue mq) {
         long result = -1;
         final ConsumeFromWhere consumeFromWhere = this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer().getConsumeFromWhere();
-        final OffsetStore offsetStore = this.defaultMQPushConsumerImpl.getOffsetStore();
+        final OffsetStore offsetStore = this.defaultMQPushConsumerImpl.getOffsetStore();//获取存储的便宜
         switch (consumeFromWhere) {
             case CONSUME_FROM_LAST_OFFSET_AND_FROM_MIN_WHEN_BOOT_FIRST:
             case CONSUME_FROM_MIN_OFFSET:
             case CONSUME_FROM_MAX_OFFSET:
             case CONSUME_FROM_LAST_OFFSET: {
+                //从最后一个偏移量拉取
+                //从存储中找最后一次拉取偏移量
                 long lastOffset = offsetStore.readOffset(mq, ReadOffsetType.READ_FROM_STORE);
-                if (lastOffset >= 0) {
+                if (lastOffset >= 0) {//如果最后一次拉取偏移量>0,就返回上次一次的位置
                     result = lastOffset;
                 }
                 // First start,no offset
-                else if (-1 == lastOffset) {
+                else if (-1 == lastOffset) {//如果没有找到,
+                    //如果当前topic是重试topic,就返回0
                     if (mq.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
                         result = 0L;
                     } else {
+                        //普通topic,并且没找到偏移量，则找最大偏移量
                         try {
                             result = this.mQClientFactory.getMQAdminImpl().maxOffset(mq);
                         } catch (MQClientException e) {

@@ -49,7 +49,7 @@ public abstract class ConfigManager {
     public abstract String configFilePath();
 
     /**
-     * 记载配置文件
+     * 加载配置文件
      *
      * 1.获取配置文件
      * 2.读取文件内容(JSON格式)

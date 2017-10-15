@@ -27,12 +27,7 @@ public class SelectMessageQueueByRandoom implements MessageQueueSelector {
 
     @Override
     public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
-        int value = random.nextInt();
-        if (value < 0) {
-            value = Math.abs(value);
-        }
-
-        value = value % mqs.size();
+        int value = random.nextInt(mqs.size());
         return mqs.get(value);
     }
 }

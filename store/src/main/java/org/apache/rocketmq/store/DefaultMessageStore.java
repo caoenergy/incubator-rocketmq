@@ -152,12 +152,15 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * 加载方法
+     * TODO 曹成:加载流程 http://blog.csdn.net/akfly/article/details/53447000
      * @throws IOException
      */
     public boolean load() {
         boolean result = true;
 
         try {
+            //判断是否有临时文件
             boolean lastExitOK = !this.isTempFileExist();
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
 
@@ -1214,6 +1217,10 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     private boolean isTempFileExist() {
         String fileName = StorePathConfigHelper.getAbortFile(this.messageStoreConfig.getStorePathRootDir());
         File file = new File(fileName);

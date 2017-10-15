@@ -204,11 +204,11 @@ public class MQAdminImpl {
      * 查询消息队列的最大偏移量
      */
     public long maxOffset(MessageQueue mq) throws MQClientException {
-        String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
-        if (null == brokerAddr) {//如果没找到master节点地址
+        String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());//本地找master节点地址
+        if (null == brokerAddr) {//每找到master节点
             //则更新一把topic的路由信息
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(mq.getTopic());
-            brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
+            brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());//再找一次master节点
         }
 
         if (brokerAddr != null) {

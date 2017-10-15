@@ -17,10 +17,28 @@
 
 package org.apache.rocketmq.client.common;
 
+/**
+ * 客户端错误代码
+ */
 public class ClientErrorCode {
-    public static final int CONNECT_BROKER_EXCEPTION = 10001;
-    public static final int ACCESS_BROKER_TIMEOUT = 10002;
-    public static final int BROKER_NOT_EXIST_EXCEPTION = 10003;
-    public static final int NO_NAME_SERVER_EXCEPTION = 10004;
-    public static final int NOT_FOUND_TOPIC_EXCEPTION = 10005;
+	/**
+	 * 连接broker异常
+	 */
+	public static final int CONNECT_BROKER_EXCEPTION = 10001;
+	/**
+	 * 访问broker超时
+	 */
+	public static final int ACCESS_BROKER_TIMEOUT = 10002;
+	/**
+	 * broker不存在
+	 */
+	public static final int BROKER_NOT_EXIST_EXCEPTION = 10003;
+	/**
+	 * 没有name server
+	 */
+	public static final int NO_NAME_SERVER_EXCEPTION = 10004;
+	/**
+	 * topic 没找到
+	 */
+	public static final int NOT_FOUND_TOPIC_EXCEPTION = 10005;
 }

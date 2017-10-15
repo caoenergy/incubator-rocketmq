@@ -21,6 +21,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头:重置偏移量
+ */
 public class ResetOffsetRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String topic;

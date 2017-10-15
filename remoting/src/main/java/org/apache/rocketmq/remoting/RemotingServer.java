@@ -17,7 +17,6 @@
 package org.apache.rocketmq.remoting;
 
 import io.netty.channel.Channel;
-import java.util.concurrent.ExecutorService;
 import org.apache.rocketmq.remoting.common.Pair;
 import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
 import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
@@ -25,17 +24,17 @@ import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+import java.util.concurrent.ExecutorService;
+
 public interface RemotingServer extends RemotingService {
 
+    //注册处理器相关
     void registerProcessor(final int requestCode, final NettyRequestProcessor processor,
         final ExecutorService executor);
 
     void registerDefaultProcessor(final NettyRequestProcessor processor, final ExecutorService executor);
 
-    int localListenPort();
-
-    Pair<NettyRequestProcessor, ExecutorService> getProcessorPair(final int requestCode);
-
+    //发送消息相关
     RemotingCommand invokeSync(final Channel channel, final RemotingCommand request,
         final long timeoutMillis) throws InterruptedException, RemotingSendRequestException,
         RemotingTimeoutException;
@@ -48,4 +47,8 @@ public interface RemotingServer extends RemotingService {
         throws InterruptedException, RemotingTooMuchRequestException, RemotingTimeoutException,
         RemotingSendRequestException;
 
+    // 其他
+    int localListenPort();
+
+    Pair<NettyRequestProcessor, ExecutorService> getProcessorPair(final int requestCode);
 }

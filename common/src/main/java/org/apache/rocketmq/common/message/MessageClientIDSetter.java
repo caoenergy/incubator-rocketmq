@@ -16,11 +16,12 @@
  */
 package org.apache.rocketmq.common.message;
 
+import org.apache.rocketmq.common.UtilAll;
+
 import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.rocketmq.common.UtilAll;
 
 public class MessageClientIDSetter {
     private static final String TOPIC_KEY_SPLITTER = "#";
@@ -34,6 +35,7 @@ public class MessageClientIDSetter {
         LEN = 4 + 2 + 4 + 4 + 2;
         ByteBuffer tempBuffer = ByteBuffer.allocate(10);
         tempBuffer.position(2);
+        System.out.println(UtilAll.getPid());
         tempBuffer.putInt(UtilAll.getPid());
         tempBuffer.position(0);
         try {
@@ -118,12 +120,25 @@ public class MessageClientIDSetter {
         return buffer.array();
     }
 
+    public static void main(String[] args) {
+        System.out.println(createUniqID());
+    }
+
+    /**
+     * 设置唯一性ID
+     * @param msg
+     */
     public static void setUniqID(final Message msg) {
         if (msg.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX) == null) {
             msg.putProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX, createUniqID());
         }
     }
 
+    /**
+     * 获取消息唯一ID
+     * @param msg
+     * @return
+     */
     public static String getUniqID(final Message msg) {
         return msg.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX);
     }

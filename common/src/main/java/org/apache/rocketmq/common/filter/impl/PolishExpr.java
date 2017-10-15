@@ -33,25 +33,42 @@ public class PolishExpr {
 
     /**
      * Shunting-yard algorithm <br/>
+     * 调度场算法(shunting yard algorithm)
+     *
      * http://en.wikipedia.org/wiki/Shunting_yard_algorithm
      *
      * @return the compute result of Shunting-yard algorithm
      */
+    /**
+     * 逆波兰式
+     * @return
+     */
     public static List<Op> reversePolish(List<Op> tokens) {
+
+        /**
+         * 操作数
+         */
         List<Op> segments = new ArrayList<Op>();
+
+        /**
+         * 运算符栈
+         */
         Stack<Operator> operatorStack = new Stack<Operator>();
 
         for (int i = 0; i < tokens.size(); i++) {
             Op token = tokens.get(i);
-            if (isOperand(token)) {
-
+            if (isOperand(token)) {//如果是操作数，直接如操作数列表
                 segments.add(token);
-            } else if (isLeftParenthesis(token)) {
-
+            }
+            // 下面的是操作符
+            else if (isLeftParenthesis(token)) {//如果为左括号(,则入栈
                 operatorStack.push((Operator) token);
-            } else if (isRightParenthesis(token)) {
+            } else if (isRightParenthesis(token)) {//如果为右括号),则出栈
 
                 Operator opNew = null;
+
+                //退出条件:栈为空 或者 当前弹出栈顶元素为左括号
+                //进入循环的情况:栈不为空 && 当前弹出栈顶元素不为左括号
                 while (!operatorStack.empty() && LEFTPARENTHESIS != (opNew = operatorStack.pop())) {
                     segments.add(opNew);
                 }
@@ -82,6 +99,7 @@ public class PolishExpr {
     }
 
     /**
+     * 将字符串表达式拆分为操作（操作数|操作符）
      * @param expression
      * @return
      * @throws Exception

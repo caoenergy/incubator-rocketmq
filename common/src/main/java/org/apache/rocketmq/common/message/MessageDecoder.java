@@ -56,6 +56,12 @@ public class MessageDecoder {
         + 4 // 13 RECONSUMETIMES
         + 8; // 14 Prepared Transaction Offset
 
+    /**
+     * 创建消息ID
+     * 消息ID实际包括2部分:
+     * 1、 ip:port
+     * 2、 偏移量(可以认为是消息ID)
+     */
     public static String createMessageId(final ByteBuffer input, final ByteBuffer addr, final long offset) {
         input.flip();
         input.limit(MessageDecoder.MSG_ID_LENGTH);
@@ -66,6 +72,9 @@ public class MessageDecoder {
         return UtilAll.bytes2string(input.array());
     }
 
+    /**
+     * 创建消息ID
+     */
     public static String createMessageId(SocketAddress socketAddress, long transactionIdhashCode) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(MessageDecoder.MSG_ID_LENGTH);
         InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
@@ -76,6 +85,9 @@ public class MessageDecoder {
         return UtilAll.bytes2string(byteBuffer.array());
     }
 
+    /**
+     * 解码消息ID
+     */
     public static MessageId decodeMessageId(final String msgId) throws UnknownHostException {
         SocketAddress address;
         long offset;
@@ -130,25 +142,46 @@ public class MessageDecoder {
         return decode(byteBuffer, readBody, true, false);
     }
 
+    /**
+     * 编码MessageExt消息
+     * @param messageExt
+     * @param needCompress 是否需要压缩
+     * @return
+     * @throws Exception
+     */
     public static byte[] encode(MessageExt messageExt, boolean needCompress) throws Exception {
+        // body
         byte[] body = messageExt.getBody();
+        // topic
         byte[] topics = messageExt.getTopic().getBytes(CHARSET_UTF8);
+        // topic len
         byte topicLen = (byte) topics.length;
+
         String properties = messageProperties2String(messageExt.getProperties());
+        // properties
         byte[] propertiesBytes = properties.getBytes(CHARSET_UTF8);
+        // properties len
         short propertiesLength = (short) propertiesBytes.length;
+        // sysFlag
         int sysFlag = messageExt.getSysFlag();
+        // 为什么要再次获取body
         byte[] newBody = messageExt.getBody();
+        // 如果需要压缩 && sysFlag = COMPRESSED_FLAG ,则进行压缩
         if (needCompress && (sysFlag & MessageSysFlag.COMPRESSED_FLAG) == MessageSysFlag.COMPRESSED_FLAG) {
+            //压缩后的body
             newBody = UtilAll.compress(body, 5);
         }
+        // body len
         int bodyLength = newBody.length;
+        // TODO store size 是什么东西？是外部以及计算好了直接传递过来不毕再计算吗
         int storeSize = messageExt.getStoreSize();
+
         ByteBuffer byteBuffer;
         if (storeSize > 0) {
             byteBuffer = ByteBuffer.allocate(storeSize);
         } else {
-            storeSize = 4 // 1 TOTALSIZE
+            storeSize =
+                  4 // 1 TOTALSIZE
                 + 4 // 2 MAGICCODE
                 + 4 // 3 BODYCRC
                 + 4 // 4 QUEUEID
@@ -162,10 +195,9 @@ public class MessageDecoder {
                 + 8 // 12 STOREHOSTADDRESS
                 + 4 // 13 RECONSUMETIMES
                 + 8 // 14 Prepared Transaction Offset
-                + 4 + bodyLength // 14 BODY
-                + 1 + topicLen // 15 TOPIC
-                + 2 + propertiesLength // 16 propertiesLength
-                + 0;
+                + 4 + bodyLength // 15 BODY
+                + 1 + topicLen // 16 TOPIC
+                + 2 + propertiesLength; // 17 propertiesLength
             byteBuffer = ByteBuffer.allocate(storeSize);
         }
         // 1 TOTALSIZE
@@ -175,31 +207,25 @@ public class MessageDecoder {
         byteBuffer.putInt(MESSAGE_MAGIC_CODE);
 
         // 3 BODYCRC
-        int bodyCRC = messageExt.getBodyCRC();
-        byteBuffer.putInt(bodyCRC);
+        byteBuffer.putInt(messageExt.getBodyCRC());
 
         // 4 QUEUEID
-        int queueId = messageExt.getQueueId();
-        byteBuffer.putInt(queueId);
+        byteBuffer.putInt(messageExt.getQueueId());
 
         // 5 FLAG
-        int flag = messageExt.getFlag();
-        byteBuffer.putInt(flag);
+        byteBuffer.putInt(messageExt.getFlag());
 
         // 6 QUEUEOFFSET
-        long queueOffset = messageExt.getQueueOffset();
-        byteBuffer.putLong(queueOffset);
+        byteBuffer.putLong(messageExt.getQueueOffset());
 
         // 7 PHYSICALOFFSET
-        long physicOffset = messageExt.getCommitLogOffset();
-        byteBuffer.putLong(physicOffset);
+        byteBuffer.putLong(messageExt.getCommitLogOffset());
 
         // 8 SYSFLAG
         byteBuffer.putInt(sysFlag);
 
         // 9 BORNTIMESTAMP
-        long bornTimeStamp = messageExt.getBornTimestamp();
-        byteBuffer.putLong(bornTimeStamp);
+        byteBuffer.putLong(messageExt.getBornTimestamp());
 
         // 10 BORNHOST
         InetSocketAddress bornHost = (InetSocketAddress) messageExt.getBornHost();
@@ -207,8 +233,7 @@ public class MessageDecoder {
         byteBuffer.putInt(bornHost.getPort());
 
         // 11 STORETIMESTAMP
-        long storeTimestamp = messageExt.getStoreTimestamp();
-        byteBuffer.putLong(storeTimestamp);
+        byteBuffer.putLong(messageExt.getStoreTimestamp());
 
         // 12 STOREHOST
         InetSocketAddress serverHost = (InetSocketAddress) messageExt.getStoreHost();
@@ -216,12 +241,10 @@ public class MessageDecoder {
         byteBuffer.putInt(serverHost.getPort());
 
         // 13 RECONSUMETIMES
-        int reconsumeTimes = messageExt.getReconsumeTimes();
-        byteBuffer.putInt(reconsumeTimes);
+        byteBuffer.putInt(messageExt.getReconsumeTimes());
 
         // 14 Prepared Transaction Offset
-        long preparedTransactionOffset = messageExt.getPreparedTransactionOffset();
-        byteBuffer.putLong(preparedTransactionOffset);
+        byteBuffer.putLong(messageExt.getPreparedTransactionOffset());
 
         // 15 BODY
         byteBuffer.putInt(bodyLength);
@@ -380,37 +403,11 @@ public class MessageDecoder {
         return msgExts;
     }
 
-    public static String messageProperties2String(Map<String, String> properties) {
-        StringBuilder sb = new StringBuilder();
-        if (properties != null) {
-            for (final Map.Entry<String, String> entry : properties.entrySet()) {
-                final String name = entry.getKey();
-                final String value = entry.getValue();
+	// ==================================================================================================================
 
-                sb.append(name);
-                sb.append(NAME_VALUE_SEPARATOR);
-                sb.append(value);
-                sb.append(PROPERTY_SEPARATOR);
-            }
-        }
-        return sb.toString();
-    }
-
-    public static Map<String, String> string2messageProperties(final String properties) {
-        Map<String, String> map = new HashMap<String, String>();
-        if (properties != null) {
-            String[] items = properties.split(String.valueOf(PROPERTY_SEPARATOR));
-            for (String i : items) {
-                String[] nv = i.split(String.valueOf(NAME_VALUE_SEPARATOR));
-                if (2 == nv.length) {
-                    map.put(nv[0], nv[1]);
-                }
-            }
-        }
-
-        return map;
-    }
-
+    /**
+     * 编码很简单
+     */
     public static byte[] encodeMessage(Message message) {
         //only need flag, body, properties
         byte[] body = message.getBody();
@@ -419,7 +416,6 @@ public class MessageDecoder {
         byte[] propertiesBytes = properties.getBytes(CHARSET_UTF8);
         //note properties length must not more than Short.MAX
         short propertiesLength = (short) propertiesBytes.length;
-        int sysFlag = message.getFlag();
         int storeSize = 4 // 1 TOTALSIZE
             + 4 // 2 MAGICCOD
             + 4 // 3 BODYCRC
@@ -451,6 +447,9 @@ public class MessageDecoder {
         return byteBuffer.array();
     }
 
+    /**
+     * 解码很简单
+     */
     public static Message decodeMessage(ByteBuffer byteBuffer) throws Exception {
         Message message = new Message();
 
@@ -482,6 +481,9 @@ public class MessageDecoder {
         return message;
     }
 
+    /**
+     * 编码多个
+     */
     public static byte[] encodeMessages(List<Message> messages) {
         //TO DO refactor, accumulate in one buffer, avoid copies
         List<byte[]> encodedMessages = new ArrayList<byte[]>(messages.size());
@@ -500,6 +502,9 @@ public class MessageDecoder {
         return allBytes;
     }
 
+    /**
+     * 解码多个
+     */
     public static List<Message> decodeMessages(ByteBuffer byteBuffer) throws Exception {
         //TO DO add a callback for processing,  avoid creating lists
         List<Message> msgs = new ArrayList<Message>();
@@ -508,5 +513,37 @@ public class MessageDecoder {
             msgs.add(msg);
         }
         return msgs;
+    }
+
+
+    public static String messageProperties2String(Map<String, String> properties) {
+        StringBuilder sb = new StringBuilder();
+        if (properties != null) {
+            for (final Map.Entry<String, String> entry : properties.entrySet()) {
+                final String name = entry.getKey();
+                final String value = entry.getValue();
+
+                sb.append(name);
+                sb.append(NAME_VALUE_SEPARATOR);
+                sb.append(value);
+                sb.append(PROPERTY_SEPARATOR);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static Map<String, String> string2messageProperties(final String properties) {
+        Map<String, String> map = new HashMap<String, String>();
+        if (properties != null) {
+            String[] items = properties.split(String.valueOf(PROPERTY_SEPARATOR));
+            for (String i : items) {
+                String[] nv = i.split(String.valueOf(NAME_VALUE_SEPARATOR));
+                if (2 == nv.length) {
+                    map.put(nv[0], nv[1]);
+                }
+            }
+        }
+
+        return map;
     }
 }

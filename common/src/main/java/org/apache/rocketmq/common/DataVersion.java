@@ -16,9 +16,14 @@
  */
 package org.apache.rocketmq.common;
 
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * 日期版本,注意其equals方法
+ * 两个日期相当必要要时间戳和版本都相同才算一样
+ */
 public class DataVersion extends RemotingSerializable {
     private long timestamp = System.currentTimeMillis();
     private AtomicLong counter = new AtomicLong(0);

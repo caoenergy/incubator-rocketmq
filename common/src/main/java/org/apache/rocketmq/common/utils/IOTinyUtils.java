@@ -17,6 +17,8 @@
 
 package org.apache.rocketmq.common.utils;
 
+import org.apache.rocketmq.remoting.common.RemotingHelper;
+
 import java.io.BufferedReader;
 import java.io.CharArrayWriter;
 import java.io.File;
@@ -31,8 +33,10 @@ import java.io.Writer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.rocketmq.remoting.common.RemotingHelper;
 
+/**
+ * io工具
+ */
 public class IOTinyUtils {
 
     static public String toString(InputStream input, String encoding) throws IOException {

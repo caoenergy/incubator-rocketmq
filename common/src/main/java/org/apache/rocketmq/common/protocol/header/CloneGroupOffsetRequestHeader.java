@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：克隆组偏移量
+ */
 public class CloneGroupOffsetRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String srcGroup;

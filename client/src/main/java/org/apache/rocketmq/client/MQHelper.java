@@ -16,15 +16,17 @@
  */
 package org.apache.rocketmq.client;
 
-import java.util.Set;
-import java.util.TreeSet;
 import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 public class MQHelper {
+
     public static void resetOffsetByTimestamp(
         final MessageModel messageModel,
         final String consumerGroup,

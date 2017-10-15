@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.common;
 
+/**
+ * TODO 曹成:主题过滤器类型有什么用?
+ */
 public enum TopicFilterType {
     SINGLE_TAG,
     MULTI_TAG

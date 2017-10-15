@@ -16,6 +16,10 @@
  */
 package org.apache.rocketmq.common.running;
 
+/**
+ * 运行时的一些状态
+ * 应该是给JMX用到
+ */
 public enum RunningStats {
     commitLogMaxOffset,
     commitLogMinOffset,

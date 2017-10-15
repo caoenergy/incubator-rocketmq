@@ -16,16 +16,6 @@
  */
 package org.apache.rocketmq.client.impl;
 
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -54,6 +44,16 @@ import org.apache.rocketmq.remoting.netty.ResponseFuture;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class MQAdminImpl {
 
     private final Logger log = ClientLogger.getLog();
@@ -72,10 +72,16 @@ public class MQAdminImpl {
         this.timeoutMillis = timeoutMillis;
     }
 
+    /**
+     * 创建主题
+     */
     public void createTopic(String key, String newTopic, int queueNum) throws MQClientException {
         createTopic(key, newTopic, queueNum, 0);
     }
 
+    /**
+     * 创建主题
+     */
     public void createTopic(String key, String newTopic, int queueNum, int topicSysFlag) throws MQClientException {
         try {
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(key, timeoutMillis);
@@ -130,6 +136,9 @@ public class MQAdminImpl {
         }
     }
 
+    /**
+     * 拉取发布消息队列
+     */
     public List<MessageQueue> fetchPublishMessageQueues(String topic) throws MQClientException {
         try {
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(topic, timeoutMillis);
@@ -146,6 +155,9 @@ public class MQAdminImpl {
         throw new MQClientException("Unknow why, Can not find Message Queue for this topic, " + topic, null);
     }
 
+    /**
+     * 拉取订阅消息队列
+     */
     public Set<MessageQueue> fetchSubscribeMessageQueues(String topic) throws MQClientException {
         try {
             TopicRouteData topicRouteData = this.mQClientFactory.getMQClientAPIImpl().getTopicRouteInfoFromNameServer(topic, timeoutMillis);
@@ -166,6 +178,9 @@ public class MQAdminImpl {
         throw new MQClientException("Unknow why, Can not find Message Queue for this topic, " + topic, null);
     }
 
+    /**
+     * 根据时间戳来查询偏移量
+     */
     public long searchOffset(MessageQueue mq, long timestamp) throws MQClientException {
         String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         if (null == brokerAddr) {
@@ -185,9 +200,13 @@ public class MQAdminImpl {
         throw new MQClientException("The broker[" + mq.getBrokerName() + "] not exist", null);
     }
 
+    /**
+     * 查询消息队列的最大偏移量
+     */
     public long maxOffset(MessageQueue mq) throws MQClientException {
         String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
-        if (null == brokerAddr) {
+        if (null == brokerAddr) {//如果没找到master节点地址
+            //则更新一把topic的路由信息
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(mq.getTopic());
             brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         }

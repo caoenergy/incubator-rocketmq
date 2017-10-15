@@ -20,11 +20,17 @@ public enum ConsumeFromWhere {
     CONSUME_FROM_LAST_OFFSET,
 
     @Deprecated
+    //过时了，已经和CONSUME_FROM_LAST_OFFSET一样
     CONSUME_FROM_LAST_OFFSET_AND_FROM_MIN_WHEN_BOOT_FIRST,
     @Deprecated
+    //过时了，已经和CONSUME_FROM_LAST_OFFSET一样
     CONSUME_FROM_MIN_OFFSET,
     @Deprecated
+    //过时了，已经和CONSUME_FROM_LAST_OFFSET一样
     CONSUME_FROM_MAX_OFFSET,
+
+
+
     CONSUME_FROM_FIRST_OFFSET,
     CONSUME_FROM_TIMESTAMP,
 }

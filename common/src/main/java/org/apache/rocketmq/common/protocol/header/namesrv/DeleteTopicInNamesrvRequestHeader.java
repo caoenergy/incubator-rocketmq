@@ -20,6 +20,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：在namesrv中删除主题
+ */
 public class DeleteTopicInNamesrvRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String topic;

@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：获取事务状态
+ */
 public class CheckTransactionStateRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private Long tranStateTableOffset;

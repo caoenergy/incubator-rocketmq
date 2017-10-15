@@ -16,16 +16,46 @@
  */
 package org.apache.rocketmq.common;
 
-import java.io.IOException;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
+/**
+ * 配置管理器
+ */
 public abstract class ConfigManager {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
+    /**
+     * 编码
+     */
     public abstract String encode();
 
+    /**
+     * 解码
+     */
+    public abstract void decode(final String jsonString);
+
+    /**
+     * 解码
+     */
+    public abstract String encode(final boolean prettyFormat);
+
+    /**
+     * 获取配置文件路径
+     */
+    public abstract String configFilePath();
+
+    /**
+     * 记载配置文件
+     *
+     * 1.获取配置文件
+     * 2.读取文件内容(JSON格式)
+     * 3.如果文件内容为空则加载备份文件
+     * 4.文件不为空则加载并解码
+     */
     public boolean load() {
         String fileName = null;
         try {
@@ -45,8 +75,6 @@ public abstract class ConfigManager {
         }
     }
 
-    public abstract String configFilePath();
-
     private boolean loadBak() {
         String fileName = null;
         try {
@@ -65,8 +93,9 @@ public abstract class ConfigManager {
         return true;
     }
 
-    public abstract void decode(final String jsonString);
-
+    /**
+     * 持久化配置文件(json格式)
+     */
     public synchronized void persist() {
         String jsonString = this.encode(true);
         if (jsonString != null) {
@@ -78,6 +107,4 @@ public abstract class ConfigManager {
             }
         }
     }
-
-    public abstract String encode(final boolean prettyFormat);
 }

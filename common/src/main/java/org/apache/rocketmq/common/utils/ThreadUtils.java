@@ -17,6 +17,10 @@
 
 package org.apache.rocketmq.common.utils;
 
+import org.apache.rocketmq.common.constant.LoggerName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,10 +29,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.rocketmq.common.constant.LoggerName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+/**
+ * 线程相关工具类
+ */
 public final class ThreadUtils {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.TOOLS_LOGGER_NAME);
 

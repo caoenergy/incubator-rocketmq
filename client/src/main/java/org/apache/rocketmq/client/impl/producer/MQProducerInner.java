@@ -16,11 +16,15 @@
  */
 package org.apache.rocketmq.client.impl.producer;
 
-import java.util.Set;
 import org.apache.rocketmq.client.producer.TransactionCheckListener;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.protocol.header.CheckTransactionStateRequestHeader;
 
+import java.util.Set;
+
+/**
+ * 内部Producer
+ */
 public interface MQProducerInner {
     Set<String> getPublishTopicList();
 

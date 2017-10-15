@@ -22,6 +22,9 @@ import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.annotation.CFNullable;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：直接消费消息
+ */
 public class ConsumeMessageDirectlyResultRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String consumerGroup;

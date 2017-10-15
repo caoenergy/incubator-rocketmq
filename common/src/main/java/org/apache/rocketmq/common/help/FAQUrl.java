@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.common.help;
 
+/**
+ * TODO 曹成:FAQ
+ */
 public class FAQUrl {
 
     public static final String APPLY_TOPIC_URL =
@@ -68,6 +71,7 @@ public class FAQUrl {
         sb.append(TIP_STRING_END);
         return sb.toString();
     }
+
 
     public static String attachDefaultURL(final String errorMessage) {
         if (errorMessage != null) {

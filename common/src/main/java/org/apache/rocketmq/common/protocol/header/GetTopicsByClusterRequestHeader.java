@@ -21,6 +21,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头:根据集群名称获取主题列表
+ */
 public class GetTopicsByClusterRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String cluster;

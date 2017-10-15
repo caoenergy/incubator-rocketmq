@@ -33,10 +33,6 @@ public class MessageAccessor {
         putProperty(msg, MessageConst.PROPERTY_TRANSFER_FLAG, unit);
     }
 
-    public static void putProperty(final Message msg, final String name, final String value) {
-        msg.putProperty(name, value);
-    }
-
     public static String getTransferFlag(final Message msg) {
         return msg.getProperty(MessageConst.PROPERTY_TRANSFER_FLAG);
     }
@@ -87,6 +83,10 @@ public class MessageAccessor {
 
     public static String getConsumeStartTimeStamp(final Message msg) {
         return msg.getProperty(MessageConst.PROPERTY_CONSUME_START_TIMESTAMP);
+    }
+
+    public static void putProperty(final Message msg, final String name, final String value) {
+        msg.putProperty(name, value);
     }
 
 }

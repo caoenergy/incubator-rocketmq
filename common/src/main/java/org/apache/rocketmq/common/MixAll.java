@@ -16,6 +16,12 @@
  */
 package org.apache.rocketmq.common;
 
+import org.apache.rocketmq.common.annotation.ImportantField;
+import org.apache.rocketmq.common.constant.LoggerName;
+import org.apache.rocketmq.common.help.FAQUrl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,11 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.rocketmq.common.annotation.ImportantField;
-import org.apache.rocketmq.common.constant.LoggerName;
-import org.apache.rocketmq.common.help.FAQUrl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MixAll {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
@@ -89,6 +90,10 @@ public class MixAll {
     public static final String DEFAULT_TRACE_REGION_ID = "DefaultRegion";
     public static final String CONSUME_CONTEXT_TYPE = "ConsumeContextType";
 
+    /**
+     * 获取webservice地址
+     * @return
+     */
     public static String getWSAddr() {
         String wsDomainName = System.getProperty("rocketmq.namesrv.domain", DEFAULT_NAMESRV_ADDR_LOOKUP);
         String wsDomainSubgroup = System.getProperty("rocketmq.namesrv.domain.subgroup", "nsaddr");
@@ -99,22 +104,45 @@ public class MixAll {
         return wsAddr;
     }
 
+    /**
+     * 获取对应的重试topic
+     */
     public static String getRetryTopic(final String consumerGroup) {
         return RETRY_GROUP_TOPIC_PREFIX + consumerGroup;
     }
 
+    /**
+     * 判断消费者组是否为系统消费者
+     */
     public static boolean isSysConsumerGroup(final String consumerGroup) {
         return consumerGroup.startsWith(CID_RMQ_SYS_PREFIX);
     }
 
-    public static boolean isSystemTopic(final String topic) {
-        return topic.startsWith(SYSTEM_TOPIC_PREFIX);
-    }
-
+    /**
+     * TODO 曹成:这是什么鬼?
+     * @param consumerGroup
+     * @return
+     */
     public static String getDLQTopic(final String consumerGroup) {
         return DLQ_GROUP_TOPIC_PREFIX + consumerGroup;
     }
 
+    /**
+     * 是否为系统topic
+     * @param topic
+     * @return
+     */
+    public static boolean isSystemTopic(final String topic) {
+        return topic.startsWith(SYSTEM_TOPIC_PREFIX);
+    }
+
+    /**
+     * 如果需要切换的话，就为原始端口数字-2
+     *
+     * @param isChange 是否切换brokerAddr
+     * @param brokerAddr 原始brokerAddr
+     * @return
+     */
     public static String brokerVIPChannel(final boolean isChange, final String brokerAddr) {
         if (isChange) {
             String[] ipAndPort = brokerAddr.split(":");
@@ -125,6 +153,9 @@ public class MixAll {
         }
     }
 
+    /**
+     * 获取PID
+     */
     public static long getPID() {
         String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
         if (processName != null && processName.length() > 0) {
@@ -138,99 +169,17 @@ public class MixAll {
         return 0;
     }
 
-    public static void string2File(final String str, final String fileName) throws IOException {
-
-        String tmpFile = fileName + ".tmp";
-        string2FileNotSafe(str, tmpFile);
-
-        String bakFile = fileName + ".bak";
-        String prevContent = file2String(fileName);
-        if (prevContent != null) {
-            string2FileNotSafe(prevContent, bakFile);
-        }
-
-        File file = new File(fileName);
-        file.delete();
-
-        file = new File(tmpFile);
-        file.renameTo(new File(fileName));
-    }
-
-    public static void string2FileNotSafe(final String str, final String fileName) throws IOException {
-        File file = new File(fileName);
-        File fileParent = file.getParentFile();
-        if (fileParent != null) {
-            fileParent.mkdirs();
-        }
-        FileWriter fileWriter = null;
-
-        try {
-            fileWriter = new FileWriter(file);
-            fileWriter.write(str);
-        } catch (IOException e) {
-            throw e;
-        } finally {
-            if (fileWriter != null) {
-                fileWriter.close();
-            }
-        }
-    }
-
-    public static String file2String(final String fileName) throws IOException {
-        File file = new File(fileName);
-        return file2String(file);
-    }
-
-    public static String file2String(final File file) throws IOException {
-        if (file.exists()) {
-            byte[] data = new byte[(int) file.length()];
-            boolean result;
-
-            FileInputStream inputStream = null;
-            try {
-                inputStream = new FileInputStream(file);
-                int len = inputStream.read(data);
-                result = len == data.length;
-            } finally {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            }
-
-            if (result) {
-                return new String(data);
-            }
-        }
-        return null;
-    }
-
-    public static String file2String(final URL url) {
-        InputStream in = null;
-        try {
-            URLConnection urlConnection = url.openConnection();
-            urlConnection.setUseCaches(false);
-            in = urlConnection.getInputStream();
-            int len = in.available();
-            byte[] data = new byte[len];
-            in.read(data, 0, len);
-            return new String(data, "UTF-8");
-        } catch (Exception ignored) {
-        } finally {
-            if (null != in) {
-                try {
-                    in.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
-
-        return null;
-    }
-
+    /**
+     * 以Properties格式输出object，全部输出
+     */
     public static void printObjectProperties(final Logger logger, final Object object) {
         printObjectProperties(logger, object, false);
     }
 
+    /**
+     * 以Properties格式输出object
+     * @param onlyImportantField 是否只输出含有@ImportantField 注解的字段
+     */
     public static void printObjectProperties(final Logger logger, final Object object,
         final boolean onlyImportantField) {
         Field[] fields = object.getClass().getDeclaredFields();
@@ -265,6 +214,9 @@ public class MixAll {
         }
     }
 
+    /**
+     * Properties转字符串
+     */
     public static String properties2String(final Properties properties) {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
@@ -275,6 +227,9 @@ public class MixAll {
         return sb.toString();
     }
 
+    /**
+     * 字符串转Properties
+     */
     public static Properties string2Properties(final String str) {
         Properties properties = new Properties();
         try {
@@ -288,6 +243,10 @@ public class MixAll {
         return properties;
     }
 
+    /**
+     * 对象转Properties
+     * 使用暴力反射,没调用get方法，因为boolean可能为isXXX
+     */
     public static Properties object2Properties(final Object object) {
         Properties properties = new Properties();
 
@@ -314,6 +273,10 @@ public class MixAll {
         return properties;
     }
 
+    /**
+     * 将Properties转换为对应的object
+     * 注意:只能是int,long,double.boolean,float,string类型
+     */
     public static void properties2Object(final Properties p, final Object object) {
         Method[] methods = object.getClass().getMethods();
         for (Method method : methods) {
@@ -322,7 +285,6 @@ public class MixAll {
                 try {
                     String tmp = mn.substring(4);
                     String first = mn.substring(3, 4);
-
                     String key = first.toLowerCase() + tmp;
                     String property = p.getProperty(key);
                     if (property != null) {
@@ -354,10 +316,17 @@ public class MixAll {
         }
     }
 
+    /**
+     * 判断Properties是否相同equals判断
+     */
     public static boolean isPropertiesEqual(final Properties p1, final Properties p2) {
         return p1.equals(p2);
     }
 
+    /**
+     * 获取本机的ip列表
+     * @return
+     */
     public static List<String> getLocalInetAddress() {
         List<String> inetAddressList = new ArrayList<String>();
         try {
@@ -376,6 +345,9 @@ public class MixAll {
         return inetAddressList;
     }
 
+    /**
+     * 获取本机ip
+     */
     private static String localhost() {
         try {
             return InetAddress.getLocalHost().getHostAddress();
@@ -392,6 +364,9 @@ public class MixAll {
         }
     }
 
+    /**
+     * 获取本机ip
+     */
     //Reverse logic comparing to RemotingUtil method, consider refactor in RocketMQ 5.0
     public static String getLocalhostByNetworkInterface() throws SocketException {
         List<String> candidatesHost = new ArrayList<String>();
@@ -424,19 +399,26 @@ public class MixAll {
         return null;
     }
 
+    /**
+     * AtomicLong增长为value值CAS操作
+     */
     public static boolean compareAndIncreaseOnly(final AtomicLong target, final long value) {
         long prev = target.get();
-        while (value > prev) {
+        while (value > prev) {//如果待设置的值 > 先前的值，则进行CAS操作
+            //CAS 操作成功？
             boolean updated = target.compareAndSet(prev, value);
-            if (updated)
+            if (updated)//成功即返回true
                 return true;
-
+            //失败说明有人更新了,则prev设置为最新值再次判断
             prev = target.get();
         }
 
         return false;
     }
 
+    /**
+     * 将字节长度转换为人为可读的字符串
+     */
     public static String humanReadableByteCount(long bytes, boolean si) {
         int unit = si ? 1000 : 1024;
         if (bytes < unit)
@@ -444,6 +426,115 @@ public class MixAll {
         int exp = (int) (Math.log(bytes) / Math.log(unit));
         String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    }
+
+
+    /**
+     * 写入文件
+     * 1.先写如临时文件
+     * 2.将之前的正式文件读取出来写入备份文件
+     * 3.删除之前的正式文件
+     * 4.临时文件重命名为正式文件
+     */
+    public static void string2File(final String str, final String fileName) throws IOException {
+
+        String tmpFile = fileName + ".tmp";
+        string2FileNotSafe(str, tmpFile);
+
+        String bakFile = fileName + ".bak";
+        String prevContent = file2String(fileName);
+        if (prevContent != null) {
+            string2FileNotSafe(prevContent, bakFile);
+        }
+
+        File file = new File(fileName);
+        file.delete();
+
+        file = new File(tmpFile);
+        file.renameTo(new File(fileName));
+    }
+
+    /**
+     * 写入文件
+     */
+    public static void string2FileNotSafe(final String str, final String fileName) throws IOException {
+        File file = new File(fileName);
+        File fileParent = file.getParentFile();
+        if (fileParent != null) {
+            fileParent.mkdirs();
+        }
+        FileWriter fileWriter = null;
+
+        try {
+            fileWriter = new FileWriter(file);
+            fileWriter.write(str);
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            if (fileWriter != null) {
+                fileWriter.close();
+            }
+        }
+    }
+
+    /**
+     * 读取文件
+     */
+    public static String file2String(final String fileName) throws IOException {
+        File file = new File(fileName);
+        return file2String(file);
+    }
+
+    /**
+     * 读取文件
+     */
+    public static String file2String(final File file) throws IOException {
+        if (file.exists()) {
+            byte[] data = new byte[(int) file.length()];
+            boolean result;
+
+            FileInputStream inputStream = null;
+            try {
+                inputStream = new FileInputStream(file);
+                int len = inputStream.read(data);
+                result = len == data.length;
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            }
+
+            if (result) {
+                return new String(data);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 读取文件
+     */
+    public static String file2String(final URL url) {
+        InputStream in = null;
+        try {
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.setUseCaches(false);
+            in = urlConnection.getInputStream();
+            int len = in.available();
+            byte[] data = new byte[len];
+            in.read(data, 0, len);
+            return new String(data, "UTF-8");
+        } catch (Exception ignored) {
+        } finally {
+            if (null != in) {
+                try {
+                    in.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+
+        return null;
     }
 
 }

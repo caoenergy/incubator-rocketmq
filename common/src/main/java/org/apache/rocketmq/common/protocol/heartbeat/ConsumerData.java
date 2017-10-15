@@ -20,10 +20,14 @@
  */
 package org.apache.rocketmq.common.protocol.heartbeat;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * 消费数据
+ */
 public class ConsumerData {
     private String groupName;
     private ConsumeType consumeType;

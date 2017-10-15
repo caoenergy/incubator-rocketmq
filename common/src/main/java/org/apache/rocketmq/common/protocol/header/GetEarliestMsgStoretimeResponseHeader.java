@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应头：获取早期消息存储时间
+ */
 public class GetEarliestMsgStoretimeResponseHeader implements CommandCustomHeader {
     @CFNotNull
     private Long timestamp;

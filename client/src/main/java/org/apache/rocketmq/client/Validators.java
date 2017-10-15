@@ -17,8 +17,6 @@
 
 package org.apache.rocketmq.client;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.MixAll;
@@ -26,7 +24,11 @@ import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.protocol.ResponseCode;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
+ * 通用的校验器
  * Common Validator
  */
 public class Validators {
@@ -48,16 +50,23 @@ public class Validators {
 
     /**
      * Validate group
+     * 检查组
      */
     public static void checkGroup(String group) throws MQClientException {
         if (UtilAll.isBlank(group)) {
             throw new MQClientException("the specified group is blank", null);
         }
+        /**
+         * 看样子是只能是%和数字字母命名（至少是不能中文）
+         */
         if (!regularExpressionMatcher(group, PATTERN)) {
             throw new MQClientException(String.format(
                 "the specified group[%s] contains illegal characters, allowing only %s", group,
                 VALID_PATTERN_STR), null);
         }
+        /**
+         * 组名长度不能超过255
+         */
         if (group.length() > CHARACTER_MAX_LENGTH) {
             throw new MQClientException("the specified group is longer than group max length 255.", null);
         }
@@ -76,6 +85,12 @@ public class Validators {
 
     /**
      * Validate message
+     * 检查消息
+     * 1.不能null
+     * 2.topic合法
+     * 3.body不能为null
+     * 4.body长度必须》0
+     * 5.body长度不能超过指定的长度（4M）
      */
     public static void checkMessage(Message msg, DefaultMQProducer defaultMQProducer)
         throws MQClientException {
@@ -102,6 +117,8 @@ public class Validators {
 
     /**
      * Validate topic
+     * 1.不能为null或者看空白
+     * 2.topic名字不能为空，中文，长度,系统名称等限制
      */
     public static void checkTopic(String topic) throws MQClientException {
         if (UtilAll.isBlank(topic)) {

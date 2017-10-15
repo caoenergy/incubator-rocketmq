@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头:根据谁查询主题消费？
+ */
 public class QueryTopicConsumeByWhoRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String topic;

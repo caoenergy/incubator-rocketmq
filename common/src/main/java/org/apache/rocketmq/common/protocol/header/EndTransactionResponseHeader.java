@@ -23,6 +23,9 @@ package org.apache.rocketmq.common.protocol.header;
 import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应:事务结束
+ */
 public class EndTransactionResponseHeader implements CommandCustomHeader {
 
     @Override

@@ -20,7 +20,9 @@ package org.apache.rocketmq.common.protocol.header.namesrv;
 import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
-
+/**
+ * 请求头：根据命名空间获取kv列表
+ */
 public class GetKVListByNamespaceRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String namespace;

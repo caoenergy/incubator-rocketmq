@@ -16,12 +16,20 @@
  */
 package org.apache.rocketmq.common.message;
 
+import org.apache.rocketmq.common.MixAll;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.rocketmq.common.MixAll;
 
+/**
+ * 批量消息
+ * 1、所有的消息TimeDelayLevel = 0
+ * 2、所有的消息主题不能以%RETRY%开头
+ * 3、所有消息的主题必须一样
+ * 4、所有消息isWaitStoreMsgOK必须一样，要么都等要么都不等
+ */
 public class MessageBatch extends Message implements Iterable<Message> {
 
     private static final long serialVersionUID = 621335151046335557L;

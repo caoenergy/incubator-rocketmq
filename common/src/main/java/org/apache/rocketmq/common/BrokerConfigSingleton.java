@@ -19,10 +19,17 @@ package org.apache.rocketmq.common;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * broker配置单例
+ */
 public class BrokerConfigSingleton {
     private static AtomicBoolean isInit = new AtomicBoolean();
     private static BrokerConfig brokerConfig;
 
+    /**
+     * 没设置的话抛出异常
+     * @return
+     */
     public static BrokerConfig getBrokerConfig() {
         if (brokerConfig == null) {
             throw new IllegalArgumentException("brokerConfig Cannot be null !");
@@ -30,6 +37,9 @@ public class BrokerConfigSingleton {
         return brokerConfig;
     }
 
+    /**
+     * 多次设置时会抛出异常
+     */
     public static void setBrokerConfig(BrokerConfig brokerConfig) {
         if (!isInit.compareAndSet(false, true)) {
             throw new IllegalArgumentException("broker config have inited !");

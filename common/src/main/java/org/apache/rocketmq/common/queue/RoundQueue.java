@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
+ * todo 曹成 这个好像没用
  * not thread safe
  */
 public class RoundQueue<E> {

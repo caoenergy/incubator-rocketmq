@@ -19,16 +19,21 @@ package org.apache.rocketmq.common.message;
 
 import java.nio.ByteBuffer;
 
+/**
+ * 添加1个属性encodedBuff以及getter/setter
+ * 添加wrap方法将body转换为ByteBuffer
+ */
 public class MessageExtBatch extends MessageExt {
 
     private static final long serialVersionUID = -2353110995348498537L;
+
+    private ByteBuffer encodedBuff;
 
     public ByteBuffer wrap() {
         assert getBody() != null;
         return ByteBuffer.wrap(getBody(), 0, getBody().length);
     }
 
-    private ByteBuffer encodedBuff;
 
     public ByteBuffer getEncodedBuff() {
         return encodedBuff;

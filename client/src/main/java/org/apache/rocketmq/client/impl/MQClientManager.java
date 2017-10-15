@@ -16,14 +16,15 @@
  */
 package org.apache.rocketmq.client.impl;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.slf4j.Logger;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MQClientManager {
     private final static Logger log = ClientLogger.getLog();
@@ -44,15 +45,21 @@ public class MQClientManager {
         return getAndCreateMQClientInstance(clientConfig, null);
     }
 
+
     public MQClientInstance getAndCreateMQClientInstance(final ClientConfig clientConfig, RPCHook rpcHook) {
         String clientId = clientConfig.buildMQClientId();
+
+        //1.尝试map中获取对应的实例
         MQClientInstance instance = this.factoryTable.get(clientId);
+        //2.如果没有
         if (null == instance) {
+            //创建
             instance =
                 new MQClientInstance(clientConfig.cloneClientConfig(),
                     this.factoryIndexGenerator.getAndIncrement(), clientId, rpcHook);
+            //放入中
             MQClientInstance prev = this.factoryTable.putIfAbsent(clientId, instance);
-            if (prev != null) {
+            if (prev != null) {//如过返回的不为null,说明之前有人放过了,吧最终返回的指向之前的实例对象
                 instance = prev;
                 log.warn("Returned Previous MQClientInstance for clientId:[{}]", clientId);
             } else {

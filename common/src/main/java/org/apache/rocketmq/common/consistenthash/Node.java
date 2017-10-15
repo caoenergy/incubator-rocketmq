@@ -17,6 +17,7 @@
 package org.apache.rocketmq.common.consistenthash;
 
 /**
+ * 节点
  * Represent a node which should be mapped to a hash ring
  */
 public interface Node {

@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应头:拉取消费者
+ */
 public class PullMessageResponseHeader implements CommandCustomHeader {
     @CFNotNull
     private Long suggestWhichBrokerId;

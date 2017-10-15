@@ -20,6 +20,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：擦除broker的写权限
+ */
 public class WipeWritePermOfBrokerRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String brokerName;

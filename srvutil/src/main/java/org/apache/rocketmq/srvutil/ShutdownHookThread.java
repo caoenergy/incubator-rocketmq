@@ -17,12 +17,15 @@
 
 package org.apache.rocketmq.srvutil;
 
+import org.slf4j.Logger;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
 
 /**
  * {@link ShutdownHookThread} is the standard hook for filtersrv and namesrv modules.
+ * 为filtersrv 和 namesrv 模块提供的标准的钩子函数
+ *
  * Through {@link Callable} interface, this hook can customization operations in anywhere.
  */
 public class ShutdownHookThread extends Thread {
@@ -33,7 +36,8 @@ public class ShutdownHookThread extends Thread {
 
     /**
      * Create the standard hook thread, with a call back, by using {@link Callable} interface.
-     *
+     * 创建钩子函数，通过传递一个Callable接口
+     * 还要传递一个日志
      * @param log The log instance is used in hook thread.
      * @param callback The call back function.
      */
@@ -51,12 +55,17 @@ public class ShutdownHookThread extends Thread {
      */
     @Override
     public void run() {
-        synchronized (this) {
+        synchronized (this) {//这里为什么要同步?
+            //打印日志，并记录调用了多少次
             log.info("shutdown hook was invoked, " + this.shutdownTimes.incrementAndGet() + " times.");
+
+            //如果没有关闭
             if (!this.hasShutdown) {
+                //设置关闭标志位:true
                 this.hasShutdown = true;
                 long beginTime = System.currentTimeMillis();
                 try {
+                    //调用传递过来的callback接口
                     this.callback.call();
                 } catch (Exception e) {
                     log.error("shutdown hook callback invoked failure.", e);

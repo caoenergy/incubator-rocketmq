@@ -28,21 +28,35 @@ public class ClientConfig {
     private String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
     private String clientIP = RemotingUtil.getLocalAddress();
     private String instanceName = System.getProperty("rocketmq.client.name", "DEFAULT");
+
+    /**
+     * 客户端回调线程池大小
+     */
     private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
     /**
      * Pulling topic information interval from the named server
+     * 拉取topic信息间隔时间
      */
     private int pollNameServerInterval = 1000 * 30;
     /**
      * Heartbeat interval in microseconds with message broker
+     * 与broker心跳间隔时间（microseconds）
      */
     private int heartbeatBrokerInterval = 1000 * 30;
     /**
      * Offset persistent interval for consumer
+     *
+     * 消费者的offset持久化间隔时间
      */
     private int persistConsumerOffsetInterval = 1000 * 5;
+    /**
+     * 单元模式？
+     */
     private boolean unitMode = false;
     private String unitName;
+    /**
+     * TODO vipChannelEnabled 默认true？
+     */
     private boolean vipChannelEnabled = Boolean.parseBoolean(System.getProperty(SEND_MESSAGE_WITH_VIP_CHANNEL_PROPERTY, "true"));
 
     public String buildMQClientId() {
@@ -55,26 +69,12 @@ public class ClientConfig {
             sb.append("@");
             sb.append(this.unitName);
         }
-
         return sb.toString();
     }
 
-    public String getClientIP() {
-        return clientIP;
-    }
-
-    public void setClientIP(String clientIP) {
-        this.clientIP = clientIP;
-    }
-
-    public String getInstanceName() {
-        return instanceName;
-    }
-
-    public void setInstanceName(String instanceName) {
-        this.instanceName = instanceName;
-    }
-
+    /**
+     * 如果instanname = DEFAULT 则转换为pid
+     */
     public void changeInstanceNameToPID() {
         if (this.instanceName.equals("DEFAULT")) {
             this.instanceName = String.valueOf(UtilAll.getPid());
@@ -109,6 +109,20 @@ public class ClientConfig {
         return cc;
     }
 
+
+    public void setClientIP(String clientIP) {
+        this.clientIP = clientIP;
+    }
+    public String getClientIP() {
+        return clientIP;
+    }
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
+    }
     public String getNamesrvAddr() {
         return namesrvAddr;
     }

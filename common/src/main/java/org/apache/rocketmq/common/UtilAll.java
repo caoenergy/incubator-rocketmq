@@ -16,6 +16,11 @@
  */
 package org.apache.rocketmq.common;
 
+import org.apache.rocketmq.common.constant.LoggerName;
+import org.apache.rocketmq.remoting.common.RemotingHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,19 +42,13 @@ import java.util.zip.CRC32;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import org.apache.rocketmq.common.constant.LoggerName;
-import org.apache.rocketmq.remoting.common.RemotingHelper;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class UtilAll {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
     public static final String YYYY_MM_DD_HH_MM_SS_SSS = "yyyy-MM-dd#HH:mm:ss:SSS";
     public static final String YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
-    final static char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    final static char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();//16位
 
     public static int getPid() {
         RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
@@ -71,6 +70,7 @@ public class UtilAll {
 
         return sb.toString();
     }
+
 
     public static String offset2FileName(final long offset) {
         final NumberFormat nf = NumberFormat.getInstance();
@@ -111,6 +111,8 @@ public class UtilAll {
             cal.get(Calendar.MILLISECOND));
     }
 
+
+
     public static long computNextMorningTimeMillis() {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
@@ -147,6 +149,8 @@ public class UtilAll {
         return cal.getTimeInMillis();
     }
 
+
+
     public static long computNextHalfHourTimeMillis() {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
@@ -172,6 +176,8 @@ public class UtilAll {
             cal.get(Calendar.MILLISECOND));
     }
 
+
+
     public static String timeMillisToHumanString3(final long t) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(t);
@@ -183,6 +189,8 @@ public class UtilAll {
             cal.get(Calendar.MINUTE),
             cal.get(Calendar.SECOND));
     }
+
+
 
     public static double getDiskPartitionSpaceUsedPercent(final String path) {
         if (null == path || path.isEmpty())
@@ -209,6 +217,8 @@ public class UtilAll {
         return -1;
     }
 
+
+
     public static int crc32(byte[] array) {
         if (array != null) {
             return crc32(array, 0, array.length);
@@ -224,15 +234,22 @@ public class UtilAll {
     }
 
     public static String bytes2string(byte[] src) {
+        //长度扩大1倍
         char[] hexChars = new char[src.length * 2];
+
         for (int j = 0; j < src.length; j++) {
             int v = src[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];//取高4位
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F]; //取低4位
         }
         return new String(hexChars);
     }
 
+    public static void main(String[] args) {
+        int x = 127;
+
+        System.out.println(x >>> 4);
+    }
     public static byte[] string2bytes(String hexString) {
         if (hexString == null || hexString.equals("")) {
             return null;
@@ -251,6 +268,8 @@ public class UtilAll {
     private static byte charToByte(char c) {
         return (byte) "0123456789ABCDEF".indexOf(c);
     }
+
+
 
     public static byte[] uncompress(final byte[] src) throws IOException {
         byte[] result = src;

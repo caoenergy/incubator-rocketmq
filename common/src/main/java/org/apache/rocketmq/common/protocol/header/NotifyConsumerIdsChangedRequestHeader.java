@@ -21,6 +21,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头:通知消费者ID发送改变
+ */
 public class NotifyConsumerIdsChangedRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String consumerGroup;

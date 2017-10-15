@@ -16,6 +16,11 @@
  */
 package org.apache.rocketmq.common.message;
 
+/**
+ * 没添加任何属性，只是添加了2组方法
+ * 1.get/setOffsetMsgId
+ * 2.get/setMsgId
+ */
 public class MessageClientExt extends MessageExt {
 
     public String getOffsetMsgId() {

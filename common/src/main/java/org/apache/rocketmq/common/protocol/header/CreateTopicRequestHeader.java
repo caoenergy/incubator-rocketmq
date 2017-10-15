@@ -25,25 +25,51 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求:创建主题
+ */
 public class CreateTopicRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String topic;
+    /**
+     * TODO 有了topic属性为什么还要加个defaultTopic ??????
+     */
     @CFNotNull
     private String defaultTopic;
+    /**
+     * TODO 读取队列数量? 具体是什么意思?
+     */
     @CFNotNull
     private Integer readQueueNums;
+    /**
+     * TODO 读取队列数量? 具体是什么意思?
+     */
     @CFNotNull
     private Integer writeQueueNums;
-    @CFNotNull
-    private Integer perm;
+    /**
+     * @see TopicFilterType  单个|多个
+     */
     @CFNotNull
     private String topicFilterType;
+    /**
+     * 权限
+     */
+    @CFNotNull
+    private Integer perm;
+    /**
+     * 主题系统标志?
+     */
     private Integer topicSysFlag;
+
+    /**
+     * 默认是没有顺序
+     */
     @CFNotNull
     private Boolean order = false;
 
     @Override
     public void checkFields() throws RemotingCommandException {
+        //检查一把过滤器类型
         try {
             TopicFilterType.valueOf(this.topicFilterType);
         } catch (Exception e) {

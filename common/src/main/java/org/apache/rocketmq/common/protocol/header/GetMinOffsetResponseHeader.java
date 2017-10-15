@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应头：获取最小偏移量
+ */
 public class GetMinOffsetResponseHeader implements CommandCustomHeader {
     @CFNotNull
     private Long offset;

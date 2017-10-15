@@ -24,7 +24,9 @@ import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
-
+/**
+ * 响应头：检查事务状态
+ */
 public class CheckTransactionStateResponseHeader implements CommandCustomHeader {
     @CFNotNull
     private String producerGroup;

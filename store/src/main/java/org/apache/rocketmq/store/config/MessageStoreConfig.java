@@ -16,52 +16,65 @@
  */
 package org.apache.rocketmq.store.config;
 
-import java.io.File;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.store.ConsumeQueue;
+
+import java.io.File;
 
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
     @ImportantField
+    // 存储路径基目录（默认为${user.home}/store目录）
     private String storePathRootDir = System.getProperty("user.home") + File.separator + "store";
 
     //The directory in which the commitlog is kept
     @ImportantField
+    // 存储提交日志的目录（默认为${user.home}/store/commitlog目录）
     private String storePathCommitLog = System.getProperty("user.home") + File.separator + "store"
         + File.separator + "commitlog";
 
     // CommitLog file size,default is 1G
+    //映射commitlog文件的大小，默认为1G
     private int mapedFileSizeCommitLog = 1024 * 1024 * 1024;
     // ConsumeQueue file size,default is 30W
+    // ConsumeQueue文件大小，默认为30W * 20 = 600W
     private int mapedFileSizeConsumeQueue = 300000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
     // enable consume queue ext
+    // 是否开启consume queue ext
     private boolean enableConsumeQueueExt = false;
     // ConsumeQueue extend file size, 48M
+    // 映射ConsumeQueueExt大小,默认为48M
     private int mappedFileSizeConsumeQueueExt = 48 * 1024 * 1024;
     // Bit count of filter bit map.
     // this will be set by pipe of calculate filter bit map.
+    // TODO 这个字段是什么意思?
     private int bitMapLengthConsumeQueueExt = 64;
 
     // CommitLog flush interval
     // flush data to disk
     @ImportantField
+    //CommitLog刷新到磁盘的间隔时间
     private int flushIntervalCommitLog = 500;
 
     // Only used if TransientStorePool enabled
     // flush data to FileChannel
     @ImportantField
+    //CommitLog提交间隔时间
     private int commitIntervalCommitLog = 200;
 
     /**
      * introduced since 4.0.x. Determine whether to use mutex reentrantLock when putting message.<br/>
      * By default it is set to false indicating using spin lock when putting message.
      */
+    // TODO 这个是什么意思，true:使用互斥重入锁，false：死等,默认为死等
     private boolean useReentrantLockWhenPutMessage = false;
 
     // Whether schedule flush,default is real-time
     @ImportantField
+    // CommitLog是否定时刷盘
     private boolean flushCommitLogTimed = false;
     // ConsumeQueue flush interval
+    // ConsumeQueue 刷新间隔
     private int flushIntervalConsumeQueue = 1000;
     // Resource reclaim interval
     private int cleanResourceInterval = 10000;
@@ -74,9 +87,11 @@ public class MessageStoreConfig {
     // When to delete,default is at 4 am
     @ImportantField
     private String deleteWhen = "04";
+    //磁盘最大使用率75%
     private int diskMaxUsedSpaceRatio = 75;
     // The number of hours to keep a log file before deleting it (in hours)
     @ImportantField
+    //文件最大存留时间默认3天
     private int fileReservedTime = 72;
     // Flow control for ConsumeQueue
     private int putMsgIndexHightWater = 600000;

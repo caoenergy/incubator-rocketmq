@@ -21,6 +21,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 请求头：注册消息过滤类
+ */
 public class RegisterMessageFilterClassRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String consumerGroup;

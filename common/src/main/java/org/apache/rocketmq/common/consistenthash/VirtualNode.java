@@ -16,25 +16,32 @@
  */
 package org.apache.rocketmq.common.consistenthash;
 
+/**
+ * 一致性哈希算法中的虚拟节点.<br/>
+ * 虚拟节点实际上是物理节点的复制品.<br/>
+ * 虚拟节点主要是用于
+ */
 public class VirtualNode<T extends Node> implements Node {
-    final T physicalNode;
-    final int replicaIndex;
+	// 节点(物理节点)
+	final T physicalNode;
+	// 复制品的index
+	final int replicaIndex;
 
-    public VirtualNode(T physicalNode, int replicaIndex) {
-        this.replicaIndex = replicaIndex;
-        this.physicalNode = physicalNode;
-    }
+	public VirtualNode(T physicalNode, int replicaIndex) {
+		this.replicaIndex = replicaIndex;
+		this.physicalNode = physicalNode;
+	}
 
-    @Override
-    public String getKey() {
-        return physicalNode.getKey() + "-" + replicaIndex;
-    }
+	@Override
+	public String getKey() {
+		return physicalNode.getKey() + "-" + replicaIndex;
+	}
 
-    public boolean isVirtualNodeOf(T pNode) {
-        return physicalNode.getKey().equals(pNode.getKey());
-    }
+	public boolean isVirtualNodeOf(T pNode) {
+		return physicalNode.getKey().equals(pNode.getKey());
+	}
 
-    public T getPhysicalNode() {
-        return physicalNode;
-    }
+	public T getPhysicalNode() {
+		return physicalNode;
+	}
 }

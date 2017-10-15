@@ -17,6 +17,8 @@
 
 package org.apache.rocketmq.common;
 
+import org.slf4j.Logger;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -25,7 +27,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.slf4j.Logger;
 
 public class Configuration {
 
@@ -64,6 +65,10 @@ public class Configuration {
 
     /**
      * register config object
+     *
+     * 1.将对象转换为Properties ，
+     * 2.合并到allConfigs，
+     * 3.最后加入configObjectList
      *
      * @return the current Configuration object
      */
@@ -114,7 +119,9 @@ public class Configuration {
 
     /**
      * The store path will be gotten from the field of object.
-     *
+     * 1.设置storePathFromConfig = true
+     * 2.设置storePathObject = object
+     * 3.设置storePathField
      * @throws java.lang.RuntimeException if the field of object is not exist.
      */
     public void setStorePathFromConfig(Object object, String fieldName) {
@@ -141,6 +148,12 @@ public class Configuration {
         }
     }
 
+    /**
+     * 获取存储路径
+     * 1.如果storePathFromConfig = true,则从storePathField中获取
+     * 2.否则，从对象中的storePath中获取
+     * @return
+     */
     private String getStorePath() {
         String realStorePath = null;
         try {
@@ -170,6 +183,14 @@ public class Configuration {
         this.storePath = storePath;
     }
 
+    /**
+     * 更新配置文件
+     * 1.将新的合并如旧的中，当且旧的中存在对应的配置项时才会合并
+     * 2.所有的配置项更新到configObjectList中
+     * 3.更新版本
+     * 4.持久化
+     * @param properties
+     */
     public void update(Properties properties) {
         try {
             readWriteLock.writeLock().lockInterruptibly();
@@ -196,13 +217,16 @@ public class Configuration {
         persist();
     }
 
+    /**
+     * 持久化
+     */
     public void persist() {
         try {
             readWriteLock.readLock().lockInterruptibly();
 
             try {
+//                configObjectList 转换为 字符串配置向（就是Properties格式）
                 String allConfigs = getAllConfigsInternal();
-
                 MixAll.string2File(allConfigs, getStorePath());
             } catch (IOException e) {
                 log.error("persist string2File error, ", e);
@@ -213,6 +237,7 @@ public class Configuration {
             log.error("persist lock error");
         }
     }
+
 
     public String getAllConfigsFormatString() {
         try {
@@ -274,6 +299,11 @@ public class Configuration {
         return stringBuilder.toString();
     }
 
+    /**
+     * 全部合并
+     * @param from
+     * @param to
+     */
     private void merge(Properties from, Properties to) {
         for (Object key : from.keySet()) {
             Object fromObj = from.get(key), toObj = to.get(key);
@@ -284,6 +314,11 @@ public class Configuration {
         }
     }
 
+    /**
+     * 当且旧的不存在时才会合并
+     * @param from
+     * @param to
+     */
     private void mergeIfExist(Properties from, Properties to) {
         for (Object key : from.keySet()) {
             if (!to.containsKey(key)) {

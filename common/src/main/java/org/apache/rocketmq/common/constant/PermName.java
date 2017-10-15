@@ -16,11 +16,36 @@
  */
 package org.apache.rocketmq.common.constant;
 
+/**
+ * 权限名称
+ */
 public class PermName {
+    /**
+     * 8
+     */
     public static final int PERM_PRIORITY = 0x1 << 3;
+    /**
+     * 读权限:4
+     */
     public static final int PERM_READ = 0x1 << 2;
+    /**
+     * 写权限:2
+     */
     public static final int PERM_WRITE = 0x1 << 1;
+    /**
+     * 执行权限:0
+     */
     public static final int PERM_INHERIT = 0x1 << 0;
+
+    public static void main(String[] args) {
+        System.out.println(PERM_PRIORITY);
+        System.out.println(PERM_READ);
+        System.out.println(PERM_WRITE);
+        System.out.println(PERM_INHERIT);
+
+        System.out.println(perm2String(5));
+
+    }
 
     public static String perm2String(final int perm) {
         final StringBuffer sb = new StringBuffer("---");

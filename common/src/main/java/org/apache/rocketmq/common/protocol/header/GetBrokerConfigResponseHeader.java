@@ -24,6 +24,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应:获取broker配置
+ */
 public class GetBrokerConfigResponseHeader implements CommandCustomHeader {
     @CFNotNull
     private String version;

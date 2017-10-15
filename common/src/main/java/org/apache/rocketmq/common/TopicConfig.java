@@ -22,12 +22,33 @@ public class TopicConfig {
     private static final String SEPARATOR = " ";
     public static int defaultReadQueueNums = 16;
     public static int defaultWriteQueueNums = 16;
+    /**
+     * 主题名
+     */
     private String topicName;
+    /**
+     * TODO 读取队列个数
+     */
     private int readQueueNums = defaultReadQueueNums;
+    /**
+     * TODO 写队列个数
+     */
     private int writeQueueNums = defaultWriteQueueNums;
+    /**
+     * 权限
+     */
     private int perm = PermName.PERM_READ | PermName.PERM_WRITE;
+    /**
+     * 主题过滤类型
+     */
     private TopicFilterType topicFilterType = TopicFilterType.SINGLE_TAG;
+    /**
+     * 主题系统标志
+     */
     private int topicSysFlag = 0;
+    /**
+     * 是否有序
+     */
     private boolean order = false;
 
     public TopicConfig() {
@@ -44,6 +65,10 @@ public class TopicConfig {
         this.perm = perm;
     }
 
+    /**
+     * 编码topicName，readQueueNums，writeQueueNums，perm，topicFilterType 使用空格分割
+     * @return
+     */
     public String encode() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.topicName);

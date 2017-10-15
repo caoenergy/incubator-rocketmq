@@ -24,13 +24,23 @@ import com.alibaba.fastjson.annotation.JSONField;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 订阅数据
+ */
 public class SubscriptionData implements Comparable<SubscriptionData> {
     public final static String SUB_ALL = "*";
     private boolean classFilterMode = false;
     private String topic;
+
+    /**
+     * 如果expressionType == tag 或者null，实际上存的是tag列表字符串
+     */
     private String subString;
+    //如果expressionType == tag或者null， 里面存的是实际的tag
     private Set<String> tagsSet = new HashSet<String>();
+    //如果expressionType == tag或者null，实际上存的是tag的hashcode see FilterAPI#buildSubscriptionData
     private Set<Integer> codeSet = new HashSet<Integer>();
+
     private long subVersion = System.currentTimeMillis();
     private String expressionType;
 

@@ -19,6 +19,9 @@ package org.apache.rocketmq.common.filter;
 
 import org.apache.rocketmq.common.message.MessageExt;
 
+/**
+ * 这个应该是对外暴露的过滤接口
+ */
 public interface MessageFilter {
     boolean match(final MessageExt msg, final FilterContext context);
 }

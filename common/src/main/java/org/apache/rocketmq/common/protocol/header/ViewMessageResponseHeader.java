@@ -23,6 +23,9 @@ package org.apache.rocketmq.common.protocol.header;
 import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应头:查看消息
+ */
 public class ViewMessageResponseHeader implements CommandCustomHeader {
 
     @Override

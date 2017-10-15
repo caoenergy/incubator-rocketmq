@@ -58,10 +58,29 @@ public class Message implements Serializable {
         this(topic, tags, keys, 0, body, true);
     }
 
-    public void setKeys(String keys) {
-        this.putProperty(MessageConst.PROPERTY_KEYS, keys);
+
+    /**
+     * properties清除指定属性
+     */
+    void clearProperty(final String name) {
+        if (null != this.properties) {
+            this.properties.remove(name);
+        }
     }
 
+    /**
+     * 获取属性
+     */
+    public String getProperty(final String name) {
+        if (null == this.properties) {
+            this.properties = new HashMap<String, String>();
+        }
+        return this.properties.get(name);
+    }
+
+    /**
+     * 添加K - V
+     */
     void putProperty(final String name, final String value) {
         if (null == this.properties) {
             this.properties = new HashMap<String, String>();
@@ -70,60 +89,49 @@ public class Message implements Serializable {
         this.properties.put(name, value);
     }
 
-    void clearProperty(final String name) {
-        if (null != this.properties) {
-            this.properties.remove(name);
-        }
-    }
-
+    /**
+     * 存放用户自定义信息(不能使用系统key，kv不能为空)
+     * 实际上还是同一个properties
+     */
     public void putUserProperty(final String name, final String value) {
+        // 不能使用系统key
         if (MessageConst.STRING_HASH_SET.contains(name)) {
             throw new RuntimeException(String.format(
-                "The Property<%s> is used by system, input another please", name));
+                    "The Property<%s> is used by system, input another please", name));
         }
-
+        // K & V 不能为null 和 空白
         if (value == null || value.trim().isEmpty()
-            || name == null || name.trim().isEmpty()) {
+                || name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException(
-                "The name or value of property can not be null or blank string!"
+                    "The name or value of property can not be null or blank string!"
             );
         }
-
+        // 放进去
         this.putProperty(name, value);
     }
 
+    // 实际上还是同一个properties
     public String getUserProperty(final String name) {
         return this.getProperty(name);
-    }
-
-    public String getProperty(final String name) {
-        if (null == this.properties) {
-            this.properties = new HashMap<String, String>();
-        }
-
-        return this.properties.get(name);
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public String getTags() {
-        return this.getProperty(MessageConst.PROPERTY_TAGS);
     }
 
     public void setTags(String tags) {
         this.putProperty(MessageConst.PROPERTY_TAGS, tags);
     }
 
+    public String getTags() {
+        return this.getProperty(MessageConst.PROPERTY_TAGS);
+    }
+
+    public void setKeys(String keys) {
+        this.putProperty(MessageConst.PROPERTY_KEYS, keys);
+    }
+
     public String getKeys() {
         return this.getProperty(MessageConst.PROPERTY_KEYS);
     }
 
+    //多个key使用空格分割
     public void setKeys(Collection<String> keys) {
         StringBuffer sb = new StringBuffer();
         for (String k : keys) {
@@ -133,6 +141,7 @@ public class Message implements Serializable {
 
         this.setKeys(sb.toString().trim());
     }
+    // =====================================================
 
     public int getDelayTimeLevel() {
         String t = this.getProperty(MessageConst.PROPERTY_DELAY_TIME_LEVEL);
@@ -159,20 +168,29 @@ public class Message implements Serializable {
         this.putProperty(MessageConst.PROPERTY_WAIT_STORE_MSG_OK, Boolean.toString(waitStoreMsgOK));
     }
 
+    public String getBuyerId() {
+        return getProperty(MessageConst.PROPERTY_BUYER_ID);
+    }
+
+    public void setBuyerId(String buyerId) {
+        putProperty(MessageConst.PROPERTY_BUYER_ID, buyerId);
+    }
+
+    // 没什么看到的GETTER && SETTER
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
     public int getFlag() {
         return flag;
     }
 
     public void setFlag(int flag) {
         this.flag = flag;
-    }
-
-    public byte[] getBody() {
-        return body;
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
     }
 
     public Map<String, String> getProperties() {
@@ -183,13 +201,15 @@ public class Message implements Serializable {
         this.properties = properties;
     }
 
-    public String getBuyerId() {
-        return getProperty(MessageConst.PROPERTY_BUYER_ID);
+    public byte[] getBody() {
+        return body;
     }
 
-    public void setBuyerId(String buyerId) {
-        putProperty(MessageConst.PROPERTY_BUYER_ID, buyerId);
+    public void setBody(byte[] body) {
+        this.body = body;
     }
+
+
 
     @Override
     public String toString() {

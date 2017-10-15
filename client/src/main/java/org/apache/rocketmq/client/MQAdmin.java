@@ -24,10 +24,12 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
  * Base interface for MQ management
+ * MQ管理基础类
  */
 public interface MQAdmin {
     /**
      * Creates an topic
+     * 创建一个topic
      *
      * @param key accesskey
      * @param newTopic topic name
@@ -38,6 +40,7 @@ public interface MQAdmin {
 
     /**
      * Creates an topic
+     * 创建一个topic
      *
      * @param key accesskey
      * @param newTopic topic name
@@ -51,6 +54,10 @@ public interface MQAdmin {
      * Gets the message queue offset according to some time in milliseconds<br>
      * be cautious to call because of more IO overhead
      *
+     * 获取消息队列偏移量,根据同一个时间戳(milliseconds)
+     *
+     * 调用该方法可能导致io占用率过高
+     *
      * @param mq Instance of MessageQueue
      * @param timestamp from when in milliseconds.
      * @return offset
@@ -60,6 +67,8 @@ public interface MQAdmin {
     /**
      * Gets the max offset
      *
+     * 获取最大偏移量
+     *
      * @param mq Instance of MessageQueue
      * @return the max offset
      */
@@ -67,6 +76,7 @@ public interface MQAdmin {
 
     /**
      * Gets the minimum offset
+     * 获取最小偏移量
      *
      * @param mq Instance of MessageQueue
      * @return the minimum offset
@@ -75,6 +85,7 @@ public interface MQAdmin {
 
     /**
      * Gets the earliest stored message time
+     * 获取早期存储消息的时间
      *
      * @param mq Instance of MessageQueue
      * @return the time in microseconds
@@ -83,6 +94,7 @@ public interface MQAdmin {
 
     /**
      * Query message according tto message id
+     * 根据消息id查看消息
      *
      * @param offsetMsgId message id
      * @return message
@@ -92,6 +104,7 @@ public interface MQAdmin {
 
     /**
      * Query messages
+     * 查询多个消息
      *
      * @param topic message topic
      * @param key message key index word
@@ -104,6 +117,7 @@ public interface MQAdmin {
         final long end) throws MQClientException, InterruptedException;
 
     /**
+     * 查询消息
      * @return The {@code MessageExt} of given msgId
      */
     MessageExt viewMessage(String topic,

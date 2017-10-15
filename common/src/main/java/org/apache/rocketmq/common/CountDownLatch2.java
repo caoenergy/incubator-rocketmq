@@ -22,6 +22,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
  * Add reset feature for @see java.util.concurrent.CountDownLatch2
+ * 在原始CountDownLatch上添加reset方法
  */
 public class CountDownLatch2 {
     private final Sync sync;

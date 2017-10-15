@@ -17,6 +17,9 @@
 
 package org.apache.rocketmq.common.filter.impl;
 
+/**
+ * 运算符
+ */
 public class Operator extends Op {
 
     public static final Operator LEFTPARENTHESIS = new Operator("(", 30, false);

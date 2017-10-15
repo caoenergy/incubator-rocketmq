@@ -16,23 +16,6 @@
  */
 package org.apache.rocketmq.store;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.rocketmq.common.BrokerConfig;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.ServiceThread;
@@ -55,6 +38,24 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.apache.rocketmq.store.config.BrokerRole.SLAVE;
 
@@ -796,23 +797,30 @@ public class DefaultMessageStore implements MessageStore {
 
         long lastQueryMsgTime = end;
 
+        //TODO 曹成： 为什么是3次
         for (int i = 0; i < 3; i++) {
+            //从索引中查找QueryOffsetResult
             QueryOffsetResult queryOffsetResult = this.indexService.queryOffset(topic, key, maxNum, begin, lastQueryMsgTime);
-            if (queryOffsetResult.getPhyOffsets().isEmpty()) {
+            if (queryOffsetResult.getPhyOffsets().isEmpty()) {//如果找到了但是物理偏移量为空,则停止查找
                 break;
             }
-
+            //物理偏移量不为空，则排序
             Collections.sort(queryOffsetResult.getPhyOffsets());
 
+            // 设置最后一次更新索引的物理偏移量
             queryMessageResult.setIndexLastUpdatePhyoffset(queryOffsetResult.getIndexLastUpdatePhyoffset());
+
+            // 设置更新时间
             queryMessageResult.setIndexLastUpdateTimestamp(queryOffsetResult.getIndexLastUpdateTimestamp());
 
+            //遍历所有偏移量
             for (int m = 0; m < queryOffsetResult.getPhyOffsets().size(); m++) {
                 long offset = queryOffsetResult.getPhyOffsets().get(m);
 
                 try {
 
                     boolean match = true;
+                    //根据偏移量查找MessageExt
                     MessageExt msg = this.lookMessageByOffset(offset);
                     if (0 == m) {
                         lastQueryMsgTime = msg.getStoreTimestamp();
@@ -1050,6 +1058,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     public ConsumeQueue findConsumeQueue(String topic, int queueId) {
+        // 取消息队列map，没有就创建，否则直接返回
         ConcurrentMap<Integer, ConsumeQueue> map = consumeQueueTable.get(topic);
         if (null == map) {
             ConcurrentMap<Integer, ConsumeQueue> newMap = new ConcurrentHashMap<Integer, ConsumeQueue>(128);
@@ -1060,7 +1069,7 @@ public class DefaultMessageStore implements MessageStore {
                 map = newMap;
             }
         }
-
+        // 取消息队列，没有就创建，否则直接返回
         ConsumeQueue logic = map.get(queueId);
         if (null == logic) {
             ConsumeQueue newLogic = new ConsumeQueue(

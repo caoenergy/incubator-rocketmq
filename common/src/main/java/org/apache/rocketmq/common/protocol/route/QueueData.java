@@ -21,10 +21,15 @@
 package org.apache.rocketmq.common.protocol.route;
 
 public class QueueData implements Comparable<QueueData> {
+    //broker名称
     private String brokerName;
+    //读取队列数量
     private int readQueueNums;
+    //写队列数量
     private int writeQueueNums;
+    //权限
     private int perm;
+    //topic同步标志位
     private int topicSynFlag;
 
     public int getReadQueueNums() {
@@ -105,6 +110,7 @@ public class QueueData implements Comparable<QueueData> {
 
     @Override
     public int compareTo(QueueData o) {
+        //按照broker名称排序
         return this.brokerName.compareTo(o.getBrokerName());
     }
 

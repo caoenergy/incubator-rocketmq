@@ -31,10 +31,10 @@ public class QueryMessageResult {
 
     private int bufferTotalSize = 0;
 
-    public void addMessage(final SelectMappedBufferResult mapedBuffer) {
-        this.messageMapedList.add(mapedBuffer);
-        this.messageBufferList.add(mapedBuffer.getByteBuffer());
-        this.bufferTotalSize += mapedBuffer.getSize();
+    public void addMessage(final SelectMappedBufferResult mappedBufferResult) {
+        this.messageMapedList.add(mappedBufferResult);
+        this.messageBufferList.add(mappedBufferResult.getByteBuffer());
+        this.bufferTotalSize += mappedBufferResult.getSize();
     }
 
     public void release() {

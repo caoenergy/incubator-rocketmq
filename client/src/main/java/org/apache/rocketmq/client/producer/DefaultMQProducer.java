@@ -16,8 +16,6 @@
  */
 package org.apache.rocketmq.client.producer;
 
-import java.util.Collection;
-import java.util.List;
 import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.Validators;
@@ -35,8 +33,12 @@ import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * This class is the entry point for applications intending to send messages.
+ * 应用程序发送消息的入口,但实际上发送消息的却是DefaultMQProducerImpl
  * </p>
  *
  * It's fine to tune fields which exposes getter/setter methods, but keep in mind, all of them should work well out of
@@ -54,6 +56,13 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  */
 public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
+    public static void main(String[] args) {
+
+        DefaultMQProducer producer = new DefaultMQProducer();
+
+        producer.setNamesrvAddr("127.0.0.1:9876");
+
+    }
     /**
      * Wrapping internal implementations for virtually all methods presented in this class.
      */

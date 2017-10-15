@@ -21,6 +21,9 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 响应头:根据消费者状态Inbroker？？？？？？？？？？？？？
+ */
 public class GetConsumeStatsInBrokerHeader implements CommandCustomHeader {
     @CFNotNull
     private boolean isOrder;

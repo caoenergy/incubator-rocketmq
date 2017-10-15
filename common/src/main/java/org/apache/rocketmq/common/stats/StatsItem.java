@@ -17,12 +17,13 @@
 
 package org.apache.rocketmq.common.stats;
 
+import org.apache.rocketmq.common.UtilAll;
+import org.slf4j.Logger;
+
 import java.util.LinkedList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.rocketmq.common.UtilAll;
-import org.slf4j.Logger;
 
 public class StatsItem {
 
@@ -154,7 +155,7 @@ public class StatsItem {
         synchronized (this.csListMinute) {
             this.csListMinute.add(new CallSnapshot(System.currentTimeMillis(), this.times.get(), this.value
                 .get()));
-            if (this.csListMinute.size() > 7) {
+            if (this.csListMinute.size() > 7) {//最大7条记录
                 this.csListMinute.removeFirst();
             }
         }
@@ -164,7 +165,7 @@ public class StatsItem {
         synchronized (this.csListHour) {
             this.csListHour.add(new CallSnapshot(System.currentTimeMillis(), this.times.get(), this.value
                 .get()));
-            if (this.csListHour.size() > 7) {
+            if (this.csListHour.size() > 7) {//最大7条记录
                 this.csListHour.removeFirst();
             }
         }
@@ -174,7 +175,7 @@ public class StatsItem {
         synchronized (this.csListDay) {
             this.csListDay.add(new CallSnapshot(System.currentTimeMillis(), this.times.get(), this.value
                 .get()));
-            if (this.csListDay.size() > 25) {
+            if (this.csListDay.size() > 25) {//最大25条记录
                 this.csListDay.removeFirst();
             }
         }

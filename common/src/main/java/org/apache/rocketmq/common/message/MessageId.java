@@ -42,4 +42,6 @@ public class MessageId {
     public void setOffset(long offset) {
         this.offset = offset;
     }
+
+
 }

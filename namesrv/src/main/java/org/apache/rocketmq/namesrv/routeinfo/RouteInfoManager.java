@@ -17,17 +17,6 @@
 package org.apache.rocketmq.namesrv.routeinfo;
 
 import io.netty.channel.Channel;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.rocketmq.common.DataVersion;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.TopicConfig;
@@ -44,6 +33,18 @@ import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RouteInfoManager {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
@@ -99,6 +100,9 @@ public class RouteInfoManager {
         return topicList.encode();
     }
 
+    /**
+     * 注册一个broker
+     */
     public RegisterBrokerResult registerBroker(
         final String clusterName,
         final String brokerAddr,
@@ -131,14 +135,16 @@ public class RouteInfoManager {
                 String oldAddr = brokerData.getBrokerAddrs().put(brokerId, brokerAddr);
                 registerFirst = registerFirst || (null == oldAddr);
 
+                //如果是master节点的话
                 if (null != topicConfigWrapper
                     && MixAll.MASTER_ID == brokerId) {
+
                     if (this.isBrokerTopicConfigChanged(brokerAddr, topicConfigWrapper.getDataVersion())
                         || registerFirst) {
-                        ConcurrentMap<String, TopicConfig> tcTable =
-                            topicConfigWrapper.getTopicConfigTable();
+                        ConcurrentMap<String, TopicConfig> tcTable = topicConfigWrapper.getTopicConfigTable();
                         if (tcTable != null) {
                             for (Map.Entry<String, TopicConfig> entry : tcTable.entrySet()) {
+
                                 this.createAndUpdateQueueData(brokerName, entry.getValue());
                             }
                         }
@@ -208,22 +214,23 @@ public class RouteInfoManager {
             log.info("new topic registerd, {} {}", topicConfig.getTopicName(), queueData);
         } else {
             boolean addNewOne = true;
-
             Iterator<QueueData> it = queueDataList.iterator();
             while (it.hasNext()) {
                 QueueData qd = it.next();
                 if (qd.getBrokerName().equals(brokerName)) {
-                    if (qd.equals(queueData)) {
+                    if (qd.equals(queueData)) {//如果一样的话就不创建
                         addNewOne = false;
                     } else {
+                        //不一样，先删除掉之前旧的
                         log.info("topic changed, {} OLD: {} NEW: {}", topicConfig.getTopicName(), qd,
                             queueData);
                         it.remove();
                     }
                 }
             }
-
+            //需要创建新的
             if (addNewOne) {
+                //放进去
                 queueDataList.add(queueData);
             }
         }
@@ -266,6 +273,9 @@ public class RouteInfoManager {
         return wipeTopicCnt;
     }
 
+    /**
+     * 删除broker
+     */
     public void unregisterBroker(
         final String clusterName,
         final String brokerAddr,
@@ -326,6 +336,10 @@ public class RouteInfoManager {
         }
     }
 
+    /**
+     * 删除topic
+     * @param brokerName
+     */
     private void removeTopicByBrokerName(final String brokerName) {
         Iterator<Entry<String, List<QueueData>>> itMap = this.topicQueueTable.entrySet().iterator();
         while (itMap.hasNext()) {

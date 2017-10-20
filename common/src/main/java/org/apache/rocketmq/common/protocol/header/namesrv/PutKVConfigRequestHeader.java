@@ -22,7 +22,8 @@ import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
 /**
- * 请求头：添加kv配置项
+ * 请求头：添加kv配置项 OK
+ * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#putKVConfig
  */
 public class PutKVConfigRequestHeader implements CommandCustomHeader {
     @CFNotNull

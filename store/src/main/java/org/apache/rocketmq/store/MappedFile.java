@@ -49,10 +49,16 @@ public class MappedFile extends ReferenceResource {
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
 
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
+
+    //写入的位置
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
     //ADD BY ChenYang
+    //已提交的位置
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
+    //已刷入硬盘的位置
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
+
+
     protected int fileSize;
     protected FileChannel fileChannel;
     /**
@@ -81,6 +87,10 @@ public class MappedFile extends ReferenceResource {
         init(fileName, fileSize, transientStorePool);
     }
 
+    /**
+     * 判断目录是否存在,但实际上只是输出一下日志，并没有什么卵用
+     * @param dirName
+     */
     public static void ensureDirOK(final String dirName) {
         if (dirName != null) {
             File f = new File(dirName);
@@ -153,19 +163,33 @@ public class MappedFile extends ReferenceResource {
         this.transientStorePool = transientStorePool;
     }
 
+    /**
+     * 总体而言：
+     * 1.将文件内容映射到内存中:TOTAL_MAPPED_VIRTUAL_MEMORY
+     * 2.同步文件个数到:TOTAL_MAPPED_FILES
+     * @param fileName
+     * @param fileSize
+     * @throws IOException
+     */
     private void init(final String fileName, final int fileSize) throws IOException {
+        //文件名称
         this.fileName = fileName;
+        //映射文件大小(1G)
         this.fileSize = fileSize;
+        //文件
         this.file = new File(fileName);
+        //从文件名中获取开始偏移量(名字起的很有意思啊)
         this.fileFromOffset = Long.parseLong(this.file.getName());
         boolean ok = false;
-
         ensureDirOK(this.file.getParent());
-
         try {
+            //得到文件的fileChannel
             this.fileChannel = new RandomAccessFile(this.file, "rw").getChannel();
+            // 将文件全部映射到内存中
             this.mappedByteBuffer = this.fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
+            //将映射的总映射虚拟内存设置为文件大小
             TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(fileSize);
+            //设置映射文件个数
             TOTAL_MAPPED_FILES.incrementAndGet();
             ok = true;
         } catch (FileNotFoundException e) {
@@ -496,6 +520,14 @@ public class MappedFile extends ReferenceResource {
         this.committedPosition.set(pos);
     }
 
+    /**
+     * 预热映射文件
+     * 1.初始化每页数据
+     * 2.同步刷盘:只是最后刷一次
+     * 3.异步刷盘:每隔指定个数个页刷一次盘
+     * @param type
+     * @param pages
+     */
     public void warmMappedFile(FlushDiskType type, int pages) {
         long beginTime = System.currentTimeMillis();
         ByteBuffer byteBuffer = this.mappedByteBuffer.slice();

@@ -16,14 +16,6 @@
  */
 package org.apache.rocketmq.store.schedule;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.apache.rocketmq.common.ConfigManager;
 import org.apache.rocketmq.common.TopicFilterType;
 import org.apache.rocketmq.common.constant.LoggerName;
@@ -43,6 +35,15 @@ import org.apache.rocketmq.store.config.StorePathConfigHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 public class ScheduleMessageService extends ConfigManager {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
@@ -51,6 +52,9 @@ public class ScheduleMessageService extends ConfigManager {
     private static final long DELAY_FOR_A_WHILE = 100L;
     private static final long DELAY_FOR_A_PERIOD = 10000L;
 
+    /**
+     * 延迟级别表
+     */
     private final ConcurrentMap<Integer /* level */, Long/* delay timeMillis */> delayLevelTable =
         new ConcurrentHashMap<Integer, Long>(32);
 
@@ -141,18 +145,28 @@ public class ScheduleMessageService extends ConfigManager {
         return this.encode(false);
     }
 
+    /**
+     * 这里加载:延迟偏移量配置文件,并写入延迟级别表中: delayLevelTable
+     */
     public boolean load() {
+        //加载${user.home}/store/config/delayOffset.json(默认)是否成功
         boolean result = super.load();
+        //如果上一步配置文件加载成功，则解析并写入延迟级别表中: delayLevelTable
         result = result && this.parseDelayLevel();
         return result;
     }
 
+    /**
+     * 获取配置文件:${user.home}/store/config/delayOffset.json(默认)路径
+     */
     @Override
     public String configFilePath() {
         return StorePathConfigHelper.getDelayOffsetStorePath(this.defaultMessageStore.getMessageStoreConfig()
             .getStorePathRootDir());
     }
 
+    //解码${user.home}/store/config/delayOffset.json(默认)文件，并转换为DelayOffsetSerializeWrapper对象
+    //最后将其中的offsettable加入到offsetTable中
     @Override
     public void decode(String jsonString) {
         if (jsonString != null) {
@@ -177,20 +191,22 @@ public class ScheduleMessageService extends ConfigManager {
         timeUnitTable.put("h", 1000L * 60 * 60);
         timeUnitTable.put("d", 1000L * 60 * 60 * 24);
 
+        //解析消息延迟时间字符串
         String levelString = this.defaultMessageStore.getMessageStoreConfig().getMessageDelayLevel();
         try {
             String[] levelArray = levelString.split(" ");
             for (int i = 0; i < levelArray.length; i++) {
                 String value = levelArray[i];
                 String ch = value.substring(value.length() - 1);
-                Long tu = timeUnitTable.get(ch);
+                Long tu = timeUnitTable.get(ch);//单位: s|m|h|d
 
+                //级别:就是说支持几个级别,比如第一次延迟:2m ,第二次延迟:5s,第三次延迟:10s,这里的第X次,X就代表级别
                 int level = i + 1;
-                if (level > this.maxDelayLevel) {
+                if (level > this.maxDelayLevel) {//动态调整级别
                     this.maxDelayLevel = level;
                 }
                 long num = Long.parseLong(value.substring(0, value.length() - 1));
-                long delayTimeMillis = tu * num;
+                long delayTimeMillis = tu * num;//转换为毫秒
                 this.delayLevelTable.put(level, delayTimeMillis);
             }
         } catch (Exception e) {
@@ -200,6 +216,27 @@ public class ScheduleMessageService extends ConfigManager {
         }
 
         return true;
+    }
+
+    public static void main(String[] args) {
+        HashMap<String, Long> timeUnitTable = new HashMap<String, Long>();
+        timeUnitTable.put("s", 1000L);
+        timeUnitTable.put("m", 1000L * 60);
+        timeUnitTable.put("h", 1000L * 60 * 60);
+        timeUnitTable.put("d", 1000L * 60 * 60 * 24);
+        String levelString = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
+        try {
+            String[] levelArray = levelString.split(" ");
+            for (int i = 0; i < levelArray.length; i++) {
+                String value = levelArray[i];
+                String ch = value.substring(value.length() - 1);
+                Long tu = timeUnitTable.get(ch);
+
+                System.out.println();
+            }
+        } catch (Exception e) {
+
+        }
     }
 
     class DeliverDelayedMessageTimerTask extends TimerTask {

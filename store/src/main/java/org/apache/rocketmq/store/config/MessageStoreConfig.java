@@ -100,6 +100,9 @@ public class MessageStoreConfig {
     // Whether check the CRC32 of the records consumed.
     // This ensures no on-the-wire or on-disk corruption to the messages occurred.
     // This check adds some overhead,so it may be disabled in cases seeking extreme performance.
+    /**
+     * 是否需要使用CRC32去校验消费了的消息
+     */
     private boolean checkCRCOnRecover = true;
     // How many pages are to be flushed when flush CommitLog
     private int flushCommitLogLeastPages = 4;
@@ -156,6 +159,7 @@ public class MessageStoreConfig {
     @ImportantField
     private boolean transientStorePoolEnable = false;
     private int transientStorePoolSize = 5;
+    //当存储池中没有缓冲数据时是否快速失败?
     private boolean fastFailIfNoBufferInStorePool = false;
 
     public boolean isDebugLockEnable() {
@@ -621,6 +625,8 @@ public class MessageStoreConfig {
     /**
      * Enable transient commitLog store poll only if transientStorePoolEnable is true and the FlushDiskType is
      * ASYNC_FLUSH
+     *
+     * 判断是否事务存储，当且仅当transientStorePoolEnable = true,并且刷盘模式为异步刷盘并且broker不是slave
      *
      * @return <tt>true</tt> or <tt>false</tt>
      */

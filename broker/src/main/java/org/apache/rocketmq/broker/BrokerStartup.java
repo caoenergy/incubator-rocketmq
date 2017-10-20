@@ -18,11 +18,6 @@ package org.apache.rocketmq.broker;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -41,6 +36,12 @@ import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.config.MessageStoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BrokerStartup {
     public static Properties properties = null;
@@ -166,7 +167,7 @@ public class BrokerStartup {
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);
             lc.reset();
-            configurator.doConfigure(brokerConfig.getRocketmqHome() + "/conf/logback_broker.xml");
+            configurator.doConfigure(brokerConfig.getRocketmqHome() + "/conf/logback.xml");
 
             if (commandLine.hasOption('p')) {
                 Logger console = LoggerFactory.getLogger(LoggerName.BROKER_CONSOLE_NAME);

@@ -16,18 +16,19 @@
  */
 package org.apache.rocketmq.namesrv.kvconfig;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.protocol.body.KVTable;
 import org.apache.rocketmq.namesrv.NamesrvController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVConfigManager {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
@@ -59,17 +60,24 @@ public class KVConfigManager {
         }
     }
 
+    /**
+     * 往特定的namespace下添加k-v对
+     */
     public void putKVConfig(final String namespace, final String key, final String value) {
         try {
+            //写锁
             this.lock.writeLock().lockInterruptibly();
             try {
+                //根据命名空间查询kv map
                 HashMap<String, String> kvTable = this.configTable.get(namespace);
                 if (null == kvTable) {
+                    //创建并添加到configTable中去
                     kvTable = new HashMap<String, String>();
                     this.configTable.put(namespace, kvTable);
                     log.info("putKVConfig create new Namespace {}", namespace);
                 }
 
+                //放入kvTable中
                 final String prev = kvTable.put(key, value);
                 if (null != prev) {
                     log.info("putKVConfig update config item, Namespace: {} Key: {} Value: {}",
@@ -79,12 +87,13 @@ public class KVConfigManager {
                         namespace, key, value);
                 }
             } finally {
+                //释放锁
                 this.lock.writeLock().unlock();
             }
         } catch (InterruptedException e) {
             log.error("putKVConfig InterruptedException", e);
         }
-
+        //做一次持久化操作
         this.persist();
     }
 
@@ -92,12 +101,14 @@ public class KVConfigManager {
         try {
             this.lock.readLock().lockInterruptibly();
             try {
+                //创建一个KVConfigSerializeWrapper,并序列化
                 KVConfigSerializeWrapper kvConfigSerializeWrapper = new KVConfigSerializeWrapper();
                 kvConfigSerializeWrapper.setConfigTable(this.configTable);
 
                 String content = kvConfigSerializeWrapper.toJson();
 
                 if (null != content) {
+                    // 序列化
                     MixAll.string2File(content, this.namesrvController.getNamesrvConfig().getKvConfigPath());
                 }
             } catch (IOException e) {
@@ -152,6 +163,9 @@ public class KVConfigManager {
         return null;
     }
 
+    /**
+     * 获取配置项
+     */
     public String getKVConfig(final String namespace, final String key) {
         try {
             this.lock.readLock().lockInterruptibly();

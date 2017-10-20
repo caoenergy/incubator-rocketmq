@@ -59,6 +59,9 @@ public class MappedFileQueue {
         this.allocateMappedFileService = allocateMappedFileService;
     }
 
+    /**
+     * 自检
+     */
     public void checkSelf() {
 
         if (!this.mappedFiles.isEmpty()) {
@@ -68,6 +71,7 @@ public class MappedFileQueue {
                 MappedFile cur = iterator.next();
 
                 if (pre != null) {
+                    //多个文件中如果发现任何一个文件大小不相同，就输出错误日志，提示文件大小不相同
                     if (cur.getFileFromOffset() - pre.getFileFromOffset() != this.mappedFileSize) {
                         LOG_ERROR.error("[BUG]The mappedFile queue's data is damaged, the adjacent mappedFile's offset don't match. pre file {}, cur file {}",
                             pre.getFileName(), cur.getFileName());
@@ -84,47 +88,65 @@ public class MappedFileQueue {
         if (null == mfs)
             return null;
 
+        //遍历所有文件
         for (int i = 0; i < mfs.length; i++) {
+            //转换为MappedFile
             MappedFile mappedFile = (MappedFile) mfs[i];
+            //根据时间判断， 如果文件最后一次修改时间 >= 传入的时间就返回(只返回一个)
             if (mappedFile.getLastModifiedTimestamp() >= timestamp) {
                 return mappedFile;
             }
         }
 
+        //如果所有文件的最后一次修改时间都不大于指定时间，则返回修改时间最接近的一个
         return (MappedFile) mfs[mfs.length - 1];
     }
 
+
     private Object[] copyMappedFiles(final int reservedMappedFiles) {
         Object[] mfs;
-
+        //如果当前维护的文件个数 小于 需要的文件个数，则返回null
         if (this.mappedFiles.size() <= reservedMappedFiles) {
             return null;
         }
-
+        //直接返回所有
         mfs = this.mappedFiles.toArray();
         return mfs;
     }
 
+    /**
+     * 从指定位置开始清空脏文件
+     */
     public void truncateDirtyFiles(long offset) {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 
+        // 遍历所有文件
         for (MappedFile file : this.mappedFiles) {
+            // 整个文件的偏移量
             long fileTailOffset = file.getFileFromOffset() + this.mappedFileSize;
+            //如果当前文件的整个偏移量 > 传入的偏移量
             if (fileTailOffset > offset) {
-                if (offset >= file.getFileFromOffset()) {
+                //如果偏移量>= 文件的开始偏移量
+                if (offset >= file.getFileFromOffset()) {//这种是落在了某个文件上
+                    //设置写入偏移量
                     file.setWrotePosition((int) (offset % this.mappedFileSize));
+                    //设置提交偏移量
                     file.setCommittedPosition((int) (offset % this.mappedFileSize));
+                    //设置刷新偏移量
                     file.setFlushedPosition((int) (offset % this.mappedFileSize));
-                } else {
-                    file.destroy(1000);
-                    willRemoveFiles.add(file);
+                } else {// offset< file.getFileFromOffset ，没有落在某个文件上，是后续的文件，则直接删除
+                    file.destroy(1000);//不一定删除的掉哈，如果文件没有被引用的话就删掉
+                    willRemoveFiles.add(file);//添加到待删除的文件列表中
                 }
             }
         }
-
+        //从当前维护的文件结合中移除文件
         this.deleteExpiredFile(willRemoveFiles);
     }
 
+    /**
+     * 从当前维护的文件结合中移除文件
+     */
     void deleteExpiredFile(List<MappedFile> files) {
 
         if (!files.isEmpty()) {
@@ -132,14 +154,14 @@ public class MappedFileQueue {
             Iterator<MappedFile> iterator = files.iterator();
             while (iterator.hasNext()) {
                 MappedFile cur = iterator.next();
-                if (!this.mappedFiles.contains(cur)) {
+                if (!this.mappedFiles.contains(cur)) {//如果没有在该维护的集合中，则直接跳过（并删除掉原始记录）
                     iterator.remove();
                     log.info("This mappedFile {} is not contained by mappedFiles, so skip it.", cur.getFileName());
                 }
             }
 
             try {
-                if (!this.mappedFiles.removeAll(files)) {
+                if (!this.mappedFiles.removeAll(files)) {//从当前维护的集合中移除文件
                     log.error("deleteExpiredFile remove failed.");
                 }
             } catch (Exception e) {
@@ -148,26 +170,38 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 加载:指定目录下的所有文件
+     * @return
+     */
     public boolean load() {
+
         File dir = new File(this.storePath);
+        // 遍历所有文件
         File[] files = dir.listFiles();
         if (files != null) {
             // ascending order
+            // 升序排列（一定要）
             Arrays.sort(files);
             for (File file : files) {
-
+                //commitlog的大小默认为1G(RandomAccessFile)
+                //如果大小不正确的话，就忽略掉该文件
                 if (file.length() != this.mappedFileSize) {
                     log.warn(file + "\t" + file.length()
                         + " length not matched message store config value, ignore it");
                     return true;
                 }
-
+                //文件大小OK
                 try {
+                    //转换为MappedFile
                     MappedFile mappedFile = new MappedFile(file.getPath(), mappedFileSize);
-
+                    //设置写文件的位置,初始设置为最末尾?
                     mappedFile.setWrotePosition(this.mappedFileSize);
+                    //设置已刷位置,初始设置为最末尾?
                     mappedFile.setFlushedPosition(this.mappedFileSize);
+                    //设置已提交的位置,初始设置为最末尾?
                     mappedFile.setCommittedPosition(this.mappedFileSize);
+                    //添加到已映射文件列表中
                     this.mappedFiles.add(mappedFile);
                     log.info("load " + file.getPath() + " OK");
                 } catch (IOException e) {
@@ -195,20 +229,30 @@ public class MappedFileQueue {
         return 0;
     }
 
+    /**
+     * 获取最后一个映射文件
+     *
+     * @param startOffset 开始偏移量
+     * @param needCreate  是否需要自动创建
+     * @return
+     */
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
         long createOffset = -1;
         MappedFile mappedFileLast = getLastMappedFile();
 
-        if (mappedFileLast == null) {
+        if (mappedFileLast == null) { //说明一个文件都没有
             createOffset = startOffset - (startOffset % this.mappedFileSize);
         }
 
+        // 文件是满的
         if (mappedFileLast != null && mappedFileLast.isFull()) {
             createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
         }
 
         if (createOffset != -1 && needCreate) {
+            //下一个文件路径
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
+            //下下一个文件路径
             String nextNextFilePath = this.storePath + File.separator
                 + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
             MappedFile mappedFile = null;
@@ -241,10 +285,14 @@ public class MappedFileQueue {
         return getLastMappedFile(startOffset, true);
     }
 
+    /**
+     * 获取最后一个映射文件
+     * @return
+     */
     public MappedFile getLastMappedFile() {
-        MappedFile mappedFileLast = null;
+        MappedFile mappedFileLast = null; //当且当前维护的文件结合为空
 
-        while (!this.mappedFiles.isEmpty()) {
+        while (!this.mappedFiles.isEmpty()) {//如果维护的文件集合不为空，就返回最后一个
             try {
                 mappedFileLast = this.mappedFiles.get(this.mappedFiles.size() - 1);
                 break;

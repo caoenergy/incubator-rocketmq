@@ -82,7 +82,7 @@ public class ResetOffsetByTimeOldCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
-        opt = new Option("s", "timestamp", true, "set the timestamp[currentTimeMillis|yyyy-MM-dd#HH:mm:ss:SSS]");
+        opt = new Option("s", "timestamp", true, "set the timestamp[currentTimeMillis|yyyy-MM-RocketMqProducerTester#HH:mm:ss:SSS]");
         opt.setRequired(true);
         options.addOption(opt);
 

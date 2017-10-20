@@ -422,7 +422,7 @@ public abstract class NettyRemotingAbstract {
 			//创建ResponseFuture这里有回调接口和信号量2个参数
 			final ResponseFuture responseFuture = new ResponseFuture(opaque, timeoutMillis, invokeCallback, once);
 
-			//将发送的请求放入responseTable中等待请求响应
+			// 将发送的请求放入responseTable中等待请求响应
             // WTF 我被这return 坑爽了粗略看的话很容易忽略掉,成功了必须要return出去!!! 否则将走失败流程
 			this.responseTable.put(opaque, responseFuture);
 			try {

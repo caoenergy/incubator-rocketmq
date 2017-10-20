@@ -17,9 +17,6 @@
 package org.apache.rocketmq.namesrv.processor;
 
 import io.netty.channel.ChannelHandlerContext;
-import java.io.UnsupportedEncodingException;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.rocketmq.common.MQVersion;
 import org.apache.rocketmq.common.MQVersion.Version;
 import org.apache.rocketmq.common.MixAll;
@@ -53,6 +50,10 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
+
 public class DefaultRequestProcessor implements NettyRequestProcessor {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
@@ -72,46 +73,85 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 request);
         }
 
+        //根据请求的代码来做转发处理
         switch (request.getCode()) {
+            //============= KV_CONFIG ============= OK
             case RequestCode.PUT_KV_CONFIG:
                 return this.putKVConfig(ctx, request);
+            //OK
             case RequestCode.GET_KV_CONFIG:
                 return this.getKVConfig(ctx, request);
+            //============= KV_CONFIG ============= OK
             case RequestCode.DELETE_KV_CONFIG:
                 return this.deleteKVConfig(ctx, request);
+            //============= 注册|卸载 BROKER =============OK
             case RequestCode.REGISTER_BROKER:
                 Version brokerVersion = MQVersion.value2Version(request.getVersion());
+                //如果请求的版本高于V3_0_11版本
                 if (brokerVersion.ordinal() >= MQVersion.Version.V3_0_11.ordinal()) {
                     return this.registerBrokerWithFilterServer(ctx, request);
                 } else {
                     return this.registerBroker(ctx, request);
                 }
+                //OK
             case RequestCode.UNREGISTER_BROKER:
                 return this.unregisterBroker(ctx, request);
+
+
+
+
+
+
+
+
+
+            //============= 根据topic获取路由信息 =============
             case RequestCode.GET_ROUTEINTO_BY_TOPIC:
                 return this.getRouteInfoByTopic(ctx, request);
+
+            //============= 获取broker的集群信息 =============
+            //OK
             case RequestCode.GET_BROKER_CLUSTER_INFO:
                 return this.getBrokerClusterInfo(ctx, request);
+
             case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
                 return this.wipeWritePermOfBroker(ctx, request);
+
+            //============= 从nameserver获取所有的broker =============
             case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER:
                 return getAllTopicListFromNameserver(ctx, request);
+            //============= 从nameserver中删除topic =============
             case RequestCode.DELETE_TOPIC_IN_NAMESRV:
                 return deleteTopicInNamesrv(ctx, request);
+
+            //OK
             case RequestCode.GET_KVLIST_BY_NAMESPACE:
                 return this.getKVListByNamespace(ctx, request);
+            //============= 根据集群来获取topic列表 =============
+            //OK
             case RequestCode.GET_TOPICS_BY_CLUSTER:
                 return this.getTopicsByCluster(ctx, request);
+
+            //============= 从nameservice获取系统topic列表 =============
+            //OK
             case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS:
                 return this.getSystemTopicListFromNs(ctx, request);
+
+            //TODO dddd
             case RequestCode.GET_UNIT_TOPIC_LIST:
                 return this.getUnitTopicList(ctx, request);
+            //TODO dddd
             case RequestCode.GET_HAS_UNIT_SUB_TOPIC_LIST:
                 return this.getHasUnitSubTopicList(ctx, request);
+            //TODO dddd
             case RequestCode.GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST:
                 return this.getHasUnitSubUnUnitTopicList(ctx, request);
+
+            //============= 更新namesrv的配置 =============
             case RequestCode.UPDATE_NAMESRV_CONFIG:
                 return this.updateConfig(ctx, request);
+
+            //TODO 获取namesrv的配置项
             case RequestCode.GET_NAMESRV_CONFIG:
                 return this.getConfig(ctx, request);
             default:
@@ -125,6 +165,9 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return false;
     }
 
+    /**
+     * configTable添加配置项
+     */
     public RemotingCommand putKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -142,6 +185,9 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 获取配置项
+     */
     public RemotingCommand getKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(GetKVConfigResponseHeader.class);
@@ -154,6 +200,7 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
             requestHeader.getKey()
         );
 
+        //如果值不为空，则返回正取结果
         if (value != null) {
             responseHeader.setValue(value);
             response.setCode(ResponseCode.SUCCESS);
@@ -161,11 +208,16 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
             return response;
         }
 
+        //没找到该指
+        //QUERY_NOT_FOUND
         response.setCode(ResponseCode.QUERY_NOT_FOUND);
         response.setRemark("No config item, Namespace: " + requestHeader.getNamespace() + " Key: " + requestHeader.getKey());
         return response;
     }
 
+    /**
+     * 删除配置项
+     */
     public RemotingCommand deleteKVConfig(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -182,10 +234,17 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+
+    /**
+     * V3_0_11及以上版本走的注册broker流程
+     */
     public RemotingCommand registerBrokerWithFilterServer(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
+
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
         final RegisterBrokerResponseHeader responseHeader = (RegisterBrokerResponseHeader) response.readCustomHeader();
+
+
         final RegisterBrokerRequestHeader requestHeader =
             (RegisterBrokerRequestHeader) request.decodeCommandCustomHeader(RegisterBrokerRequestHeader.class);
 
@@ -218,13 +277,18 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         response.setRemark(null);
         return response;
     }
-
+    /**
+     * V3_0_11以下版本走的注册broker流程
+     */
     public RemotingCommand registerBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
+        // 返回的消息
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
+        // 响应头(这里的内容应该全部为空的，不是null)
         final RegisterBrokerResponseHeader responseHeader = (RegisterBrokerResponseHeader) response.readCustomHeader();
-        final RegisterBrokerRequestHeader requestHeader =
-            (RegisterBrokerRequestHeader) request.decodeCommandCustomHeader(RegisterBrokerRequestHeader.class);
+
+        //请求头
+        final RegisterBrokerRequestHeader requestHeader = (RegisterBrokerRequestHeader) request.decodeCommandCustomHeader(RegisterBrokerRequestHeader.class);
 
         TopicConfigSerializeWrapper topicConfigWrapper;
         if (request.getBody() != null) {
@@ -256,6 +320,13 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return response;
     }
 
+    /**
+     * 从namesrv中取消broker
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand unregisterBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);

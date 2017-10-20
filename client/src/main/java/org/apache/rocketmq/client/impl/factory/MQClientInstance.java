@@ -182,7 +182,7 @@ public class MQClientInstance {
             }
             //设置为有序主题
             info.setOrderTopic(true);
-        } else {//如果没有数据
+        } else {//如果不是有序topic
             //获取路由数据中的队列数据
             List<QueueData> qds = route.getQueueDatas();
             //排序
@@ -671,26 +671,32 @@ public class MQClientInstance {
             if (this.lockNamesrv.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                 try {
                     TopicRouteData topicRouteData;
-                    if (isDefault && defaultMQProducer != null) {
+                    if (isDefault && defaultMQProducer != null) { //默认topic
+                        // 从namesrv获取默认的路由信息
                         topicRouteData = this.mQClientAPIImpl.getDefaultTopicRouteInfoFromNameServer(defaultMQProducer.getCreateTopicKey(),
                             1000 * 3);
+
+                        //如果获取到了默认的路由信息
                         if (topicRouteData != null) {
+                            // 获取并遍历默认topic的队列信息
                             for (QueueData data : topicRouteData.getQueueDatas()) {
+                                //比较topic默认的队列数量和队列的读取队列数量，取较小值
                                 int queueNums = Math.min(defaultMQProducer.getDefaultTopicQueueNums(), data.getReadQueueNums());
+                                //修正队列的读取|写如数量
                                 data.setReadQueueNums(queueNums);
                                 data.setWriteQueueNums(queueNums);
                             }
                         }
-                    } else {
-                        //如果是客户端的话，就找服务端拉取topic的路由信息
+                    } else {//特定的topic
+                        // 如果是客户端的话，就找服务端拉取topic的路由信息
                         topicRouteData = this.mQClientAPIImpl.getTopicRouteInfoFromNameServer(topic, 1000 * 3);
                     }
 
-                    //如果成功的获取到主题的路由数据
+                    //如果成功的获取到主题的路由数据(有可能是默认topic 也可能是特定的topic )
                     if (topicRouteData != null) {
-                        //查看本地副本中的路由信息
+                        // 查看本地副本中的路由信息
                         TopicRouteData old = this.topicRouteTable.get(topic);
-                        //对比本地和服务器的路由信息，是否有所差异
+                        // 对比本地和服务器的路由信息，是否有所差异
                         boolean changed = topicRouteDataIsChange(old, topicRouteData);
                         if (!changed) {//没差异，则再次进行判断
                             changed = this.isNeedUpdateTopicRouteInfo(topic);

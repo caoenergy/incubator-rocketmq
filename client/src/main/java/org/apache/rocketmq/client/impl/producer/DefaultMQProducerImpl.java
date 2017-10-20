@@ -577,11 +577,21 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             null).setResponseCode(ClientErrorCode.NOT_FOUND_TOPIC_EXCEPTION);
     }
 
+    /**
+     * 根据topic查询路由信息
+     * @param topic
+     * @return
+     */
     private TopicPublishInfo tryToFindTopicPublishInfo(final String topic) {
+        //1. 优先从本地副本中查询路由信息
         TopicPublishInfo topicPublishInfo = this.topicPublishInfoTable.get(topic);
+        //1.1 本地副本缓存没找到路由信息 或者 找到了路由信息但是路由信息不正确
         if (null == topicPublishInfo || !topicPublishInfo.ok()) {
+            // 重新创建一个路由信息,并放入到本地副本缓存中
             this.topicPublishInfoTable.putIfAbsent(topic, new TopicPublishInfo());
+            // 更新路由信息,从namesrv获取路由信息并更新本地副本
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic);
+            // 再次拉取路由信息
             topicPublishInfo = this.topicPublishInfoTable.get(topic);
         }
 
@@ -605,7 +615,6 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             tryToFindTopicPublishInfo(mq.getTopic());
             brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         }
-
         SendMessageContext context = null;
         if (brokerAddr != null) {
             brokerAddr = MixAll.brokerVIPChannel(this.defaultMQProducer.isSendMessageWithVIPChannel(), brokerAddr);

@@ -16,13 +16,6 @@
  */
 package org.apache.rocketmq.store.index;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.message.MessageConst;
@@ -32,6 +25,14 @@ import org.apache.rocketmq.store.DispatchRequest;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class IndexService {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -55,10 +56,13 @@ public class IndexService {
     }
 
     public boolean load(final boolean lastExitOK) {
+        //加载index文件
+        //${user.home}/store/index/
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();
         if (files != null) {
             // ascending order
+            // 升序排序
             Arrays.sort(files);
             for (File file : files) {
                 try {
@@ -249,6 +253,7 @@ public class IndexService {
         for (boolean ok = indexFile.putKey(idxKey, msg.getCommitLogOffset(), msg.getStoreTimestamp()); !ok; ) {
             log.warn("Index file [" + indexFile.getFileName() + "] is full, trying to create another one");
 
+            //说明index文件满了，从新创建一个新的index文件
             indexFile = retryGetAndCreateIndexFile();
             if (null == indexFile) {
                 return null;
@@ -297,11 +302,12 @@ public class IndexService {
 
         {
             this.readWriteLock.readLock().lock();
-            if (!this.indexFileList.isEmpty()) {
+            if (!this.indexFileList.isEmpty()) {//没有空
                 IndexFile tmp = this.indexFileList.get(this.indexFileList.size() - 1);
                 if (!tmp.isWriteFull()) {
                     indexFile = tmp;
                 } else {
+
                     lastUpdateEndPhyOffset = tmp.getEndPhyOffset();
                     lastUpdateIndexTimestamp = tmp.getEndTimestamp();
                     prevIndexFile = tmp;
@@ -311,6 +317,7 @@ public class IndexService {
             this.readWriteLock.readLock().unlock();
         }
 
+        //indexFileList 为空的
         if (indexFile == null) {
             try {
                 String fileName =

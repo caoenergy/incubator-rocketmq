@@ -23,6 +23,7 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
 /**
  * 请求头：获取kv配置
+ * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#getKVConfig
  */
 public class GetKVConfigRequestHeader implements CommandCustomHeader {
     @CFNotNull

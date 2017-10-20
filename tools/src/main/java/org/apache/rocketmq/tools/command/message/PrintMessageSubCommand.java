@@ -81,13 +81,13 @@ public class PrintMessageSubCommand implements SubCommand {
 
         opt =
             new Option("b", "beginTimestamp ", true,
-                "Begin timestamp[currentTimeMillis|yyyy-MM-dd#HH:mm:ss:SSS]");
+                "Begin timestamp[currentTimeMillis|yyyy-MM-RocketMqProducerTester#HH:mm:ss:SSS]");
         opt.setRequired(false);
         options.addOption(opt);
 
         opt =
             new Option("e", "endTimestamp ", true,
-                "End timestamp[currentTimeMillis|yyyy-MM-dd#HH:mm:ss:SSS]");
+                "End timestamp[currentTimeMillis|yyyy-MM-RocketMqProducerTester#HH:mm:ss:SSS]");
         opt.setRequired(false);
         options.addOption(opt);
 

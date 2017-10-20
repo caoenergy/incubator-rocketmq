@@ -16,16 +16,17 @@
  */
 package org.apache.rocketmq.store;
 
+import org.apache.rocketmq.common.UtilAll;
+import org.apache.rocketmq.common.constant.LoggerName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import org.apache.rocketmq.common.UtilAll;
-import org.apache.rocketmq.common.constant.LoggerName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StoreCheckpoint {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -36,6 +37,9 @@ public class StoreCheckpoint {
     private volatile long logicsMsgTimestamp = 0;
     private volatile long indexMsgTimestamp = 0;
 
+    public static void main(String[] args) throws IOException{
+        new StoreCheckpoint("D:/checkpoint");
+    }
     public StoreCheckpoint(final String scpPath) throws IOException {
         File file = new File(scpPath);
         MappedFile.ensureDirOK(file.getParent());
@@ -47,10 +51,12 @@ public class StoreCheckpoint {
 
         if (fileExists) {
             log.info("store checkpoint file exists, " + scpPath);
+            
             this.physicMsgTimestamp = this.mappedByteBuffer.getLong(0);
             this.logicsMsgTimestamp = this.mappedByteBuffer.getLong(8);
             this.indexMsgTimestamp = this.mappedByteBuffer.getLong(16);
-
+//            physicMsgTimestamp:20171016213734099
+//            logicsMsgTimestamp:20171016213734099
             log.info("store checkpoint file physicMsgTimestamp " + this.physicMsgTimestamp + ", "
                 + UtilAll.timeMillisToHumanString(this.physicMsgTimestamp));
             log.info("store checkpoint file logicsMsgTimestamp " + this.logicsMsgTimestamp + ", "

@@ -160,24 +160,27 @@ public class DefaultMessageStore implements MessageStore {
         boolean result = true;
 
         try {
-            //判断是否有临时文件
+            //判断abort文件是否存在，存在:正常退出,不存在:非正常退出
             boolean lastExitOK = !this.isTempFileExist();
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
 
             if (null != scheduleMessageService) {
+                //加载:延迟偏移量配置文件,并写入延迟级别表中.
                 result = result && this.scheduleMessageService.load();
             }
 
             // load Commit Log
+            // 加载所有的commitlog到内存
             result = result && this.commitLog.load();
 
             // load Consume Queue
             result = result && this.loadConsumeQueue();
 
             if (result) {
+                //加载checkpoint文件
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
-
+                //加载index文件
                 this.indexService.load(lastExitOK);
 
                 this.recover(lastExitOK);
@@ -1218,8 +1221,8 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     *
-     * @return
+     * 判断abort文件是否存在
+     * 默认为: ${user.home}/store/abort
      */
     private boolean isTempFileExist() {
         String fileName = StorePathConfigHelper.getAbortFile(this.messageStoreConfig.getStorePathRootDir());
@@ -1227,29 +1230,42 @@ public class DefaultMessageStore implements MessageStore {
         return file.exists();
     }
 
+    /**
+     *
+     */
     private boolean loadConsumeQueue() {
+        /**
+         * 获取consumequeue目录
+         */
         File dirLogic = new File(StorePathConfigHelper.getStorePathConsumeQueue(this.messageStoreConfig.getStorePathRootDir()));
         File[] fileTopicList = dirLogic.listFiles();
         if (fileTopicList != null) {
-
+            // 遍历consumequeue目录,下的所有文件
             for (File fileTopic : fileTopicList) {
+                // 获取名称(文件夹),名称即为topic
                 String topic = fileTopic.getName();
-
+                // 具体的topic文件夹下才真实存放消息队列
                 File[] fileQueueIdList = fileTopic.listFiles();
                 if (fileQueueIdList != null) {
+                    // 文件名又是按照队列ID名称存放
                     for (File fileQueueId : fileQueueIdList) {
                         int queueId;
                         try {
                             queueId = Integer.parseInt(fileQueueId.getName());
                         } catch (NumberFormatException e) {
-                            continue;
+                            continue;//如果不是int类型，就跳过
                         }
+
+                        //转换为逻辑上的消费队列
                         ConsumeQueue logic = new ConsumeQueue(
                             topic,
                             queueId,
+//                          ${user.home}/store/consumequeue
                             StorePathConfigHelper.getStorePathConsumeQueue(this.messageStoreConfig.getStorePathRootDir()),
                             this.getMessageStoreConfig().getMapedFileSizeConsumeQueue(),
                             this);
+
+                        //放入consumeQueueTable中
                         this.putConsumeQueue(topic, queueId, logic);
                         if (!logic.load()) {
                             return false;
@@ -1284,6 +1300,9 @@ public class DefaultMessageStore implements MessageStore {
         return transientStorePool;
     }
 
+    /**
+     * 放入consumeQueueTable中
+     */
     private void putConsumeQueue(final String topic, final int queueId, final ConsumeQueue consumeQueue) {
         ConcurrentMap<Integer/* queueId */, ConsumeQueue> map = this.consumeQueueTable.get(topic);
         if (null == map) {
@@ -1732,11 +1751,12 @@ public class DefaultMessageStore implements MessageStore {
         private void doReput() {
             for (boolean doNext = true; this.isCommitLogAvailable() && doNext; ) {
 
+                //消息队列的确认偏移量要小于重放位置(就是消息还没有被确认)
                 if (DefaultMessageStore.this.getMessageStoreConfig().isDuplicationEnable()
                     && this.reputFromOffset >= DefaultMessageStore.this.getConfirmOffset()) {
                     break;
                 }
-
+                //获取消息
                 SelectMappedBufferResult result = DefaultMessageStore.this.commitLog.getData(reputFromOffset);
                 if (result != null) {
                     try {

@@ -16,11 +16,15 @@
  */
 package org.apache.rocketmq.store;
 
-import java.nio.ByteBuffer;
 import org.apache.rocketmq.common.message.MessageExtBatch;
+
+import java.nio.ByteBuffer;
 
 /**
  * Write messages callback interface
+ *
+ * 写消息时的回调接口
+ *
  */
 public interface AppendMessageCallback {
 

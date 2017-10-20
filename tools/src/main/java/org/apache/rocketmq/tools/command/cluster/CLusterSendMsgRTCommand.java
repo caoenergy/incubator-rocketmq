@@ -201,7 +201,7 @@ public class CLusterSendMsgRTCommand implements SubCommand {
 
     public String getCurTime() {
         String fromTimeZone = "GMT+8";
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-RocketMqProducerTester HH:mm:ss");
         Date date = new Date();
         format.setTimeZone(TimeZone.getTimeZone(fromTimeZone));
         String chinaDate = format.format(date);

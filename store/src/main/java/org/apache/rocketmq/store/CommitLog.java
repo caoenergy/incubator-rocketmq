@@ -16,13 +16,6 @@
  */
 package org.apache.rocketmq.store;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.apache.rocketmq.common.ServiceThread;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.constant.LoggerName;
@@ -38,6 +31,14 @@ import org.apache.rocketmq.store.ha.HAService;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Store all metadata downtime for recovery, data protection reliability
@@ -88,6 +89,7 @@ public class CommitLog {
     }
 
     public boolean load() {
+        // 加载:${user.home}/store/commitlog
         boolean result = this.mappedFileQueue.load();
         log.info("load commit log " + (result ? "OK" : "Failed"));
         return result;
@@ -157,19 +159,21 @@ public class CommitLog {
 
     /**
      * When the normal exit, data recovery, all memory data have been flush
+     * 当上次是正常退出时，恢复策略
      */
     public void recoverNormally() {
         boolean checkCRCOnRecover = this.defaultMessageStore.getMessageStoreConfig().isCheckCRCOnRecover();
         final List<MappedFile> mappedFiles = this.mappedFileQueue.getMappedFiles();
         if (!mappedFiles.isEmpty()) {
             // Began to recover from the last third file
+            // 恢复最近的3个文件
             int index = mappedFiles.size() - 3;
-            if (index < 0)
+            if (index < 0)//如果没有3个文件，那么就从第一个文件开始
                 index = 0;
 
             MappedFile mappedFile = mappedFiles.get(index);
             ByteBuffer byteBuffer = mappedFile.sliceByteBuffer();
-            long processOffset = mappedFile.getFileFromOffset();
+            long processOffset = mappedFile.getFileFromOffset();//其实就是文件名
             long mappedFileOffset = 0;
             while (true) {
                 DispatchRequest dispatchRequest = this.checkMessageAndReturnSize(byteBuffer, checkCRCOnRecover);
@@ -209,6 +213,12 @@ public class CommitLog {
         }
     }
 
+    /**
+     * 创建一个请求：检查消息并且返回长度
+     * @param byteBuffer
+     * @param checkCRC
+     * @return
+     */
     public DispatchRequest checkMessageAndReturnSize(java.nio.ByteBuffer byteBuffer, final boolean checkCRC) {
         return this.checkMessageAndReturnSize(byteBuffer, checkCRC, true);
     }
@@ -230,6 +240,7 @@ public class CommitLog {
         final boolean readBody) {
         try {
             // 1 TOTAL SIZE
+            //
             int totalSize = byteBuffer.getInt();
 
             // 2 MAGIC CODE
@@ -392,6 +403,9 @@ public class CommitLog {
         this.confirmOffset = phyOffset;
     }
 
+    /**
+     * 异常退出时，恢复策略
+     */
     public void recoverAbnormally() {
         // recover by the minimum time stamp
         boolean checkCRCOnRecover = this.defaultMessageStore.getMessageStoreConfig().isCheckCRCOnRecover();

@@ -25,7 +25,7 @@ public enum BrokerRole {
      */
     ASYNC_MASTER,
     /**
-     * 同步双写Master
+     * 同步多写Master
      */
     SYNC_MASTER,
     /**

@@ -17,8 +17,6 @@
 package org.apache.rocketmq.broker.processor;
 
 import io.netty.channel.ChannelHandlerContext;
-import java.net.SocketAddress;
-import java.util.List;
 import org.apache.rocketmq.broker.BrokerController;
 import org.apache.rocketmq.broker.mqtrace.ConsumeMessageContext;
 import org.apache.rocketmq.broker.mqtrace.ConsumeMessageHook;
@@ -50,6 +48,9 @@ import org.apache.rocketmq.store.MessageExtBrokerInner;
 import org.apache.rocketmq.store.PutMessageResult;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
+
+import java.net.SocketAddress;
+import java.util.List;
 
 public class SendMessageProcessor extends AbstractSendMessageProcessor implements NettyRequestProcessor {
 
@@ -512,16 +513,16 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             return response;
         }
         MessageExtBatch messageExtBatch = new MessageExtBatch();
-        messageExtBatch.setTopic(requestHeader.getTopic());
-        messageExtBatch.setQueueId(queueIdInt);
+        messageExtBatch.setTopic(requestHeader.getTopic());//topic
+        messageExtBatch.setQueueId(queueIdInt);//queue
 
         int sysFlag = requestHeader.getSysFlag();
         if (TopicFilterType.MULTI_TAG == topicConfig.getTopicFilterType()) {
             sysFlag |= MessageSysFlag.MULTI_TAGS_FLAG;
         }
-        messageExtBatch.setSysFlag(sysFlag);
+        messageExtBatch.setSysFlag(sysFlag);//sysFlag
 
-        messageExtBatch.setFlag(requestHeader.getFlag());
+        messageExtBatch.setFlag(requestHeader.getFlag());//flag
         MessageAccessor.setProperties(messageExtBatch, MessageDecoder.string2messageProperties(requestHeader.getProperties()));
         messageExtBatch.setBody(request.getBody());
         messageExtBatch.setBornTimestamp(requestHeader.getBornTimestamp());

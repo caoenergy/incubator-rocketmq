@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 /**
  * Write messages callback interface
  *
- * 写消息时的回调接口
+ * MappedFile在执行写消息时的回调接口
  *
  */
 public interface AppendMessageCallback {

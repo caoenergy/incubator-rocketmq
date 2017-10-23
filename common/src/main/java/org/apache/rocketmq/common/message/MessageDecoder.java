@@ -63,10 +63,12 @@ public class MessageDecoder {
      * 2、 偏移量(可以认为是消息ID)
      */
     public static String createMessageId(final ByteBuffer input, final ByteBuffer addr, final long offset) {
+        // 下面2句话的意思是: 重置input
         input.flip();
         input.limit(MessageDecoder.MSG_ID_LENGTH);
-
+        // 放入地址端口(8)
         input.put(addr);
+        // 偏移量 8
         input.putLong(offset);
 
         return UtilAll.bytes2string(input.array());

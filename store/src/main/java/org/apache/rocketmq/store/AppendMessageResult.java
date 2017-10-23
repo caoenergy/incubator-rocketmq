@@ -40,8 +40,16 @@ public class AppendMessageResult {
         this(status, 0, 0, "", 0, 0, 0);
     }
 
-    public AppendMessageResult(AppendMessageStatus status, long wroteOffset, int wroteBytes, String msgId,
-        long storeTimestamp, long logicsOffset, long pagecacheRT) {
+
+//    AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, totalMsgLen, msgIdBuilder.toString(),
+//            messageExtBatch.getStoreTimestamp(), beginQueueOffset, CommitLog.this.defaultMessageStore.now() - beginTimeMills);
+    public AppendMessageResult(AppendMessageStatus status, //状态
+                               long wroteOffset,//开始写入偏移量
+                               int wroteBytes, //写入字节个数
+                               String msgId,//消息id
+                               long storeTimestamp,//存储时间
+                               long logicsOffset,//逻辑开始偏移量
+                               long pagecacheRT) {//时间差
         this.status = status;
         this.wroteOffset = wroteOffset;
         this.wroteBytes = wroteBytes;

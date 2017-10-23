@@ -18,12 +18,18 @@ package org.apache.rocketmq.store;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+
 public abstract class ReferenceResource {
     protected final AtomicLong refCount = new AtomicLong(1);
+    // 是否可用标志位
     protected volatile boolean available = true;
     protected volatile boolean cleanupOver = false;
     private volatile long firstShutdownTimestamp = 0;
 
+    /**
+     * 资源是否能HOLD住,当前如果当前引用计数==0,则引用计数+1,并返回false,
+     * @return true:success,false:failed
+     */
     public synchronized boolean hold() {
         if (this.isAvailable()) {
             if (this.refCount.getAndIncrement() > 0) {
@@ -36,10 +42,16 @@ public abstract class ReferenceResource {
         return false;
     }
 
+    /**
+     * 资源是否可用,即:是否可被HOLD
+     */
     public boolean isAvailable() {
         return this.available;
     }
 
+    /**
+     * 禁止资源被访问shutdown不允许调用多次，最好是由管理线程调用
+     */
     public void shutdown(final long intervalForcibly) {
         if (this.available) {
             this.available = false;
@@ -53,13 +65,16 @@ public abstract class ReferenceResource {
         }
     }
 
+    /**
+     * 释放资源
+     */
     public void release() {
         long value = this.refCount.decrementAndGet();
         if (value > 0)
             return;
 
+        // value == 0,执行cleanup方法
         synchronized (this) {
-
             this.cleanupOver = this.cleanup(value);
         }
     }
@@ -68,9 +83,13 @@ public abstract class ReferenceResource {
         return this.refCount.get();
     }
 
-    public abstract boolean cleanup(final long currentRef);
-
+    /**
+     * 资源是否被清理完成
+     */
     public boolean isCleanupOver() {
         return this.refCount.get() <= 0 && this.cleanupOver;
     }
+
+    public abstract boolean cleanup(final long currentRef);
+
 }

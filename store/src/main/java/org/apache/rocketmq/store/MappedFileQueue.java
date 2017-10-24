@@ -238,28 +238,32 @@ public class MappedFileQueue {
      */
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
         long createOffset = -1;
+
+        // 获取最后一个文件
+        // 文件不存在:说明一个文件都没有，需要创建
+        // 文件存在，但已写满了，需要另外创建
+        // 文件存在，未写满,直接返回回去
         MappedFile mappedFileLast = getLastMappedFile();
 
         if (mappedFileLast == null) { //说明一个文件都没有
-            createOffset = startOffset - (startOffset % this.mappedFileSize);
+            createOffset = startOffset - (startOffset % this.mappedFileSize);//文件的开始位置，也是文件名
         }
 
         // 文件是满的
         if (mappedFileLast != null && mappedFileLast.isFull()) {
-            createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
+            createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;//如果是满了的，就用最后一个文件+1
         }
 
         if (createOffset != -1 && needCreate) {
             //下一个文件路径
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
             //下下一个文件路径
-            String nextNextFilePath = this.storePath + File.separator
-                + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
+            String nextNextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
+
             MappedFile mappedFile = null;
 
             if (this.allocateMappedFileService != null) {
-                mappedFile = this.allocateMappedFileService.putRequestAndReturnMappedFile(nextFilePath,
-                    nextNextFilePath, this.mappedFileSize);
+                mappedFile = this.allocateMappedFileService.putRequestAndReturnMappedFile(nextFilePath, nextNextFilePath, this.mappedFileSize);
             } else {
                 try {
                     mappedFile = new MappedFile(nextFilePath, this.mappedFileSize);

@@ -61,8 +61,7 @@ public class AllocateMappedFileService extends ServiceThread {
         int canSubmitRequests = 2;
         if (this.messageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
             //异步刷盘，broker不是salve, transientStorePoolEnable = true
-            //如果存储池中没有缓冲数据时设置为快速失败,
-            //broker为非salve,
+            //如果存储池中没有缓冲数据时设置为快速失败, broker为master,
             if (this.messageStore.getMessageStoreConfig().isFastFailIfNoBufferInStorePool()
                 && BrokerRole.SLAVE != this.messageStore.getMessageStoreConfig().getBrokerRole()) { //if broker is slave, don't fast fail even no buffer in pool
 
@@ -110,7 +109,7 @@ public class AllocateMappedFileService extends ServiceThread {
                 }
             }
         }
-        //有异常信息，退出
+        // 有异常信息，退出
         if (hasException) {
             log.warn(this.getServiceName() + " service has exception. so return null");
             return null;
@@ -216,13 +215,9 @@ public class AllocateMappedFileService extends ServiceThread {
                 }
 
                 // pre write mappedFile
-                if (mappedFile.getFileSize() >= this.messageStore.getMessageStoreConfig()
-                    .getMapedFileSizeCommitLog()
-                    &&
-                    this.messageStore.getMessageStoreConfig().isWarmMapedFileEnable()) {
-
-                    mappedFile.warmMappedFile(this.messageStore.getMessageStoreConfig().getFlushDiskType(),
-                        this.messageStore.getMessageStoreConfig().getFlushLeastPagesWhenWarmMapedFile());
+                if (mappedFile.getFileSize() >= this.messageStore.getMessageStoreConfig().getMapedFileSizeCommitLog()
+                    && this.messageStore.getMessageStoreConfig().isWarmMapedFileEnable()) {
+                    mappedFile.warmMappedFile(this.messageStore.getMessageStoreConfig().getFlushDiskType(),this.messageStore.getMessageStoreConfig().getFlushLeastPagesWhenWarmMapedFile());
                 }
 
                 req.setMappedFile(mappedFile);

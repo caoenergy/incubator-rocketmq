@@ -402,14 +402,17 @@ public class MappedFile extends ReferenceResource {
         int flush = this.flushedPosition.get();//已刷位置
         int write = getReadPosition();//commit/write pos
 
+        // 盘满了就刷
         if (this.isFull()) {
             return true;
         }
 
+        // 盘没满，但未刷盘数据满足指定page数目
         if (flushLeastPages > 0) {
             return ((write / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE)) >= flushLeastPages;
         }
 
+        // 有数据就刷
         return write > flush;
     }
 

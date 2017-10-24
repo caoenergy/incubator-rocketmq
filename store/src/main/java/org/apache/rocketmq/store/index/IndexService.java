@@ -70,8 +70,7 @@ public class IndexService {
                     f.load();
 
                     if (!lastExitOK) {
-                        if (f.getEndTimestamp() > this.defaultMessageStore.getStoreCheckpoint()
-                            .getIndexMsgTimestamp()) {
+                        if (f.getEndTimestamp() > this.defaultMessageStore.getStoreCheckpoint().getIndexMsgTimestamp()) {
                             f.destroy(0);
                             continue;
                         }
@@ -91,6 +90,14 @@ public class IndexService {
         return true;
     }
 
+    /**
+     * 删除过期的文件
+     *
+     * 比对偏移量和文件的结束偏移量
+     *
+     * 如果结束偏移量还小于入参的偏移量，则说明需要删除
+     * @param offset
+     */
     public void deleteExpiredFile(long offset) {
         Object[] files = null;
         try {
@@ -100,7 +107,7 @@ public class IndexService {
             }
 
             long endPhyOffset = this.indexFileList.get(0).getEndPhyOffset();
-            if (endPhyOffset < offset) {
+            if (endPhyOffset < offset) {//如果第一个文件的结束物理偏移量 小于 入参偏移量，则说明是，当前
                 files = this.indexFileList.toArray();
             }
         } catch (Exception e) {

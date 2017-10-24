@@ -70,9 +70,9 @@ public class CommitLog {
         this.defaultMessageStore = defaultMessageStore;
 
         if (FlushDiskType.SYNC_FLUSH == defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
-            this.flushCommitLogService = new GroupCommitService();
+            this.flushCommitLogService = new GroupCommitService();  // 同步刷盘
         } else {
-            this.flushCommitLogService = new FlushRealTimeService();
+            this.flushCommitLogService = new FlushRealTimeService();// 异步刷盘
         }
 
         this.commitLogService = new CommitRealTimeService();
@@ -644,8 +644,12 @@ public class CommitLog {
         return putMessageResult;
     }
 
+    /**
+     * 刷盘
+     */
     public void handleDiskFlush(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
         // Synchronization flush
+        // 同步刷盘
         if (FlushDiskType.SYNC_FLUSH == this.defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
             final GroupCommitService service = (GroupCommitService) this.flushCommitLogService;
             if (messageExt.isWaitStoreMsgOK()) {
@@ -662,6 +666,7 @@ public class CommitLog {
             }
         }
         // Asynchronous flush
+        // 异步刷盘
         else {
             if (!this.defaultMessageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
                 flushCommitLogService.wakeup();
@@ -706,20 +711,26 @@ public class CommitLog {
 
         final int tranType = MessageSysFlag.getTransactionValue(messageExtBatch.getSysFlag());
 
+        // 必须是非事务类型
         if (tranType != MessageSysFlag.TRANSACTION_NOT_TYPE) {
             return new PutMessageResult(PutMessageStatus.MESSAGE_ILLEGAL, null);
         }
+        // 不能是延迟消息
         if (messageExtBatch.getDelayTimeLevel() > 0) {
             return new PutMessageResult(PutMessageStatus.MESSAGE_ILLEGAL, null);
         }
 
         long eclipseTimeInLock = 0;
         MappedFile unlockMappedFile = null;
+
+        // 获取最后一个文件
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile();
 
         //fine-grained lock instead of the coarse-grained
+        // 编码对象
         MessageExtBatchEncoder batchEncoder = batchEncoderThreadLocal.get();
 
+        // 编码后设置给EncodedBuff
         messageExtBatch.setEncodedBuff(batchEncoder.encode(messageExtBatch));
 
         putMessageLock.lock();
@@ -963,7 +974,7 @@ public class CommitLog {
     }
 
     /**
-     * 实时刷新
+     * 异步刷盘
      */
     class FlushRealTimeService extends FlushCommitLogService {
         private long lastFlushTimestamp = 0;
@@ -1079,9 +1090,12 @@ public class CommitLog {
     /**
      * GroupCommit Service
      */
+    // 同步刷盘
     class GroupCommitService extends FlushCommitLogService {
         private volatile List<GroupCommitRequest> requestsWrite = new ArrayList<GroupCommitRequest>();
         private volatile List<GroupCommitRequest> requestsRead = new ArrayList<GroupCommitRequest>();
+
+//        GroupCommitRequest request = new GroupCommitRequest(result.getWroteOffset() + result.getWroteBytes());
 
         public synchronized void putRequest(final GroupCommitRequest request) {
             synchronized (this.requestsWrite) {
@@ -1437,28 +1451,6 @@ public class CommitLog {
                     return new AppendMessageResult(AppendMessageStatus.END_OF_FILE, wroteOffset, maxBlank, msgIdBuilder.toString(), messageExtBatch.getStoreTimestamp(),
                         beginQueueOffset, CommitLog.this.defaultMessageStore.now() - beginTimeMills);
                 }
-
-//                final int msgLen = 4 //TOTALSIZE
-//                        + 4 //MAGICCODE
-//                        + 4 //BODYCRC
-//                        + 4 //QUEUEID
-//                        + 4 //FLAG
-//========================20=============================
-//                        + 8 //QUEUEOFFSET
-//                        + 8 //PHYSICALOFFSET
-//                        + 4 //SYSFLAG
-//========================40=============================
-//                        + 8 //BORNTIMESTAMP
-//                        + 8 //BORNHOST
-//                        + 8 //STORETIMESTAMP
-//                        + 8 //STOREHOSTADDRESS
-//                        + 4 //RECONSUMETIMES
-//                        + 8 //Prepared Transaction Offset
-//                        + 4 + (bodyLength > 0 ? bodyLength : 0) //BODY
-//                        + 1 + topicLength //TOPIC
-//                        + 2 + (propertiesLength > 0 ? propertiesLength : 0) //propertiesLength
-
-                //move to add queue offset and commitlog offset
                 messagesByteBuff.position(msgPos + 20);
                 messagesByteBuff.putLong(queueOffset);
                 messagesByteBuff.putLong(wroteOffset + totalMsgLen - msgLen);

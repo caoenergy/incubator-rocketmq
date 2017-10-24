@@ -28,6 +28,7 @@ public class SelectMappedBufferResult {
 
     private MappedFile mappedFile;
 
+
     public SelectMappedBufferResult(long startOffset, ByteBuffer byteBuffer, int size, MappedFile mappedFile) {
         this.startOffset = startOffset;
         this.byteBuffer = byteBuffer;

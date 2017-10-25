@@ -59,27 +59,27 @@ public class ExpressionMessageFilter implements MessageFilter {
 
     @Override
     public boolean isMatchedByConsumeQueue(Long tagsCode, ConsumeQueueExt.CqExtUnit cqExtUnit) {
-        if (null == subscriptionData) {
+        if (null == subscriptionData) {//如果subscriptionData为空，返回true
             return true;
         }
 
-        if (subscriptionData.isClassFilterMode()) {
+        if (subscriptionData.isClassFilterMode()) {//如果classFilterMode为true返回true
             return true;
         }
 
         // by tags code.
-        if (ExpressionType.isTagType(subscriptionData.getExpressionType())) {
-
+        if (ExpressionType.isTagType(subscriptionData.getExpressionType())) { //如果是tag标签
+            // 如果 tagCode为空返回true
             if (tagsCode == null || tagsCode < 0L) {
                 return true;
             }
-
+            //如果为* 则返回true
             if (subscriptionData.getSubString().equals(SubscriptionData.SUB_ALL)) {
                 return true;
             }
-
+            //判断订阅的codeSet是否包含tagsCode
             return subscriptionData.getCodeSet().contains(tagsCode.intValue());
-        } else {
+        } else {// TODO 曹成sql标签???
             // no expression or no bloom
             if (consumerFilterData == null || consumerFilterData.getExpression() == null
                 || consumerFilterData.getCompiledExpression() == null || consumerFilterData.getBloomFilterData() == null) {

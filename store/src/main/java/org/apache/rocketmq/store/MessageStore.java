@@ -24,22 +24,23 @@ import java.util.LinkedList;
 import java.util.Set;
 
 /**
- * 消息存储接口
- *
+ * 消息存储服务(存储层对外暴露的接口)
+ * 
  * This class defines contracting interfaces to implement, allowing third-party vendor to use customized message store.
  */
 public interface MessageStore {
 
     /**
      * Load previously stored messages.
-     * 加载之前储存的消息
+     * 重启时,加载前线储存的消息
+     * 
      * @return true if success; false otherwise.
      */
     boolean load();
 
     /**
      * Launch this message store.
-     * 开启消息存储服务
+     * 启动消息存储服务
      *
      * @throws Exception if there is any error.
      */
@@ -52,14 +53,14 @@ public interface MessageStore {
     void shutdown();
 
     /**
-     * TODO 曹成:销毁该存储
      * Destroy this message store. Generally, all persistent files should be removed after invocation.
+     * 删除所有文件(目前只是给单元测试使用)
      */
     void destroy();
 
     /**
      * Store a message into store.
-     * 存储消息到文件系统
+     * 存储消息
      *
      * @param msg Message instance to store
      * @return result of store operation.
@@ -68,7 +69,7 @@ public interface MessageStore {
 
     /**
      * Store a batch of messages.
-     * 批量存储消息到文件系统
+     * 批量存储消息
      *
      * @param messageExtBatch Message batch.
      * @return result of storing batch messages.
@@ -78,7 +79,7 @@ public interface MessageStore {
     /**
      * Query at most <code>maxMsgNums</code> messages belonging to <code>topic</code> at <code>queueId</code> starting
      * from given <code>offset</code>. Resulting messages will further be screened using provided message filter.
-     * TODO 曹成：获取消息:从指定偏移量搜索特定个数个消息，消息过滤,并从中找出获取属于特定的组 & 属于特定的topic & 属于特定的队列Id的消息
+     * 获取消息: 从指定偏移量搜索特定个数个消息，消息过滤,并从中找出获取属于特定的组 & 属于特定的topic & 属于特定的队列Id的消息
      *
      * @param group Consumer group that launches this query.
      * @param topic Topic to query.
@@ -93,8 +94,7 @@ public interface MessageStore {
 
     /**
      * Get maximum offset of the topic queue.
-     *
-     * 获取特定topic下特定的队列ID中的最大偏移量
+     * 获取指定topic下指定队列的最大Offset,队列不存在时,返回0
      *
      * @param topic Topic name.
      * @param queueId Queue ID.
@@ -104,7 +104,7 @@ public interface MessageStore {
 
     /**
      * Get the minimum offset of the topic queue.
-     * 获取特定topic下特定的队列ID中的最小偏移量
+     * 获取指定topic下指定队列的最小Offset,队列不存在时,返回-1
      *
      * @param topic Topic name.
      * @param queueId Queue ID.
@@ -114,6 +114,7 @@ public interface MessageStore {
 
     /**
      * Get the offset of the message in the commit log, which is also known as physical offset.
+     * 获取消息在commitLog中的物理偏移量(参数:consumeQueueOffset指QonsumeQueue的物理偏移量)
      *
      * @param topic Topic of the message to lookup.
      * @param queueId Queue ID.
@@ -270,7 +271,8 @@ public interface MessageStore {
 
     /**
      * Return the current timestamp of the store.
-     *
+     * 返回当前时间戳
+     * 
      * @return current time in milliseconds since 1970-01-01.
      */
     long now();

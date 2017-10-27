@@ -153,10 +153,17 @@ public class ConsumeQueue {
         }
     }
 
+    /**
+     * 二分查找查找消息发送时间最接近timestamp逻辑队列的offset
+     */
     public long getOffsetInQueueByTime(final long timestamp) {
+        // 根据时间查找MappedFile
         MappedFile mappedFile = this.mappedFileQueue.getMappedFileByTime(timestamp);
         if (mappedFile != null) {
+            // 找到了
             long offset = 0;
+            // 如果逻辑最小偏移量 > 文件的开始偏移量,那么就取 minLogicOffset - 文件开始偏移量
+            // low:第一个索引信息的起始位置
             int low = minLogicOffset > mappedFile.getFileFromOffset() ? (int) (minLogicOffset - mappedFile.getFileFromOffset()) : 0;
             int high = 0;
             int midOffset = -1, targetOffset = -1, leftOffset = -1, rightOffset = -1;
@@ -428,6 +435,11 @@ public class ConsumeQueue {
 
         this.byteBufferIndex.flip();
         this.byteBufferIndex.limit(CQ_STORE_UNIT_SIZE);
+
+        // 由此可用ConsumeQueue的存储结构为:
+        //  offset(long 8字节)
+        //  size(int 4字节)
+        //  tagsCode(long 8字节)
         this.byteBufferIndex.putLong(offset);
         this.byteBufferIndex.putInt(size);
         this.byteBufferIndex.putLong(tagsCode);
@@ -477,12 +489,19 @@ public class ConsumeQueue {
         }
     }
 
+    /**
+     *
+     * @param startIndex 开始偏移量
+     * @return
+     */
     public SelectMappedBufferResult getIndexBuffer(final long startIndex) {
-        int mappedFileSize = this.mappedFileSize;
-        long offset = startIndex * CQ_STORE_UNIT_SIZE;
-        if (offset >= this.getMinLogicOffset()) {
+        int mappedFileSize = this.mappedFileSize; //
+        long offset = startIndex * CQ_STORE_UNIT_SIZE; // 结束偏移量
+        if (offset >= this.getMinLogicOffset()) { //结束偏移量一定要大于起始偏移量(物理偏移量)
+            // 得到具体的ConsumeQueue文件
             MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset);
             if (mappedFile != null) {
+//                                                                                         物理偏移量转换为相对偏移量
                 SelectMappedBufferResult result = mappedFile.selectMappedBuffer((int) (offset % mappedFileSize));
                 return result;
             }

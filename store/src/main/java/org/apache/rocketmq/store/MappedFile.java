@@ -449,6 +449,12 @@ public class MappedFile extends ReferenceResource {
         return this.fileSize == this.wrotePosition.get();
     }
 
+    /**
+     * 从相对位置开始获取指定长度结果
+     * @param pos 相对位置
+     * @param size
+     * @return
+     */
     public SelectMappedBufferResult selectMappedBuffer(int pos, int size) {
         int readPosition = getReadPosition();
         if ((pos + size) <= readPosition) {
@@ -470,6 +476,11 @@ public class MappedFile extends ReferenceResource {
         return null;
     }
 
+    /**
+     * 从相对位置开始获取后续可读范围内的所有
+     * @param pos 相对位置
+     * @return
+     */
     public SelectMappedBufferResult selectMappedBuffer(int pos) {
         int readPosition = getReadPosition();
         if (pos < readPosition && pos >= 0) {

@@ -22,10 +22,10 @@ import java.lang.management.OperatingSystemMXBean;
 public class StoreUtil {
     public static final long TOTAL_PHYSICAL_MEMORY_SIZE = getTotalPhysicalMemorySize();
 
-    @SuppressWarnings("restriction")
     /**
      * 获取物理总内存
      */
+    @SuppressWarnings("restriction")
     public static long getTotalPhysicalMemorySize() {
         long physicalTotal = 1024 * 1024 * 1024 * 24L;
         OperatingSystemMXBean osmxb = ManagementFactory.getOperatingSystemMXBean();

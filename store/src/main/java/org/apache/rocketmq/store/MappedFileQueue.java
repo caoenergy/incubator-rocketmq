@@ -81,7 +81,10 @@ public class MappedFileQueue {
             }
         }
     }
-
+    
+    /**
+     * 根据时间查找MappedFile
+     */
     public MappedFile getMappedFileByTime(final long timestamp) {
         Object[] mfs = this.copyMappedFiles(0);
 
@@ -94,6 +97,7 @@ public class MappedFileQueue {
             MappedFile mappedFile = (MappedFile) mfs[i];
             //根据时间判断， 如果文件最后一次修改时间 >= 传入的时间就返回(只返回一个)
             if (mappedFile.getLastModifiedTimestamp() >= timestamp) {
+                // TODO 为什么匹配了就返回呢?
                 return mappedFile;
             }
         }
@@ -508,26 +512,32 @@ public class MappedFileQueue {
     /**
      * Finds a mapped file by offset.
      *
-     * @param offset Offset.
+     * @param offset Offset. 物理偏移量
      * @param returnFirstOnNotFound If the mapped file is not found, then return the first one.
      * @return Mapped file or null (when not found and returnFirstOnNotFound is <code>false</code>).
      */
     public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound) {
         try {
-            MappedFile mappedFile = this.getFirstMappedFile();
+            MappedFile mappedFile = this.getFirstMappedFile();//获取第一个映射文件
             if (mappedFile != null) {
+
+                // 注意1:下标从0开始
+                // int index = (int) ((offset / this.mappedFileSize) - (mappedFile.getFileFromOffset() / this.mappedFileSize));
+                // 等价于 int index = (int)((offset - mappedFile.getFileFromOffset()) /this.mappedFileSize)
+                // 实际上就是判定该offset在映射的文件列表中的index下标
                 int index = (int) ((offset / this.mappedFileSize) - (mappedFile.getFileFromOffset() / this.mappedFileSize));
                 if (index < 0 || index >= this.mappedFiles.size()) {
                     LOG_ERROR.warn("Offset for {} not matched. Request offset: {}, index: {}, " +
                             "mappedFileSize: {}, mappedFiles count: {}",
                         mappedFile,
-                        offset,
-                        index,
-                        this.mappedFileSize,
-                        this.mappedFiles.size());
+                        offset,                  // 59511140
+                        index,                   // 1
+                        this.mappedFileSize,     // 50000000
+                        this.mappedFiles.size());// 1
                 }
 
                 try {
+                    //根据下标返回对应的文件
                     return this.mappedFiles.get(index);
                 } catch (Exception e) {
                     if (returnFirstOnNotFound) {

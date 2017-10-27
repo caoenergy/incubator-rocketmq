@@ -156,7 +156,7 @@ public class CommitLog {
 
         return null;
     }
-
+    
     /**
      * When the normal exit, data recovery, all memory data have been flush
      * 当上次是正常退出时，恢复策略
@@ -841,12 +841,16 @@ public class CommitLog {
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
         if (mappedFile != null) {
-            int pos = (int) (offset % mappedFileSize);// 取逻辑偏移量
+            // 物理偏移量转换为该偏移量在本文件中的相对偏移量，等到相对偏移量
+            int pos = (int) (offset % mappedFileSize);
             return mappedFile.selectMappedBuffer(pos, size);
         }
         return null;
     }
 
+    /**
+     * 获取下一个文件的开始偏移量
+     */
     public long rollNextFile(final long offset) {
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMapedFileSizeCommitLog();
         return offset + mappedFileSize - offset % mappedFileSize;
